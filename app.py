@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
 # 한글 폰트 설정 
-plt.rcParams['font.family'] = 'Malgun Gothic'  
+plt.rcParams['font.family'] = 'NanumGothic'  
 plt.rcParams['axes.unicode_minus'] = False     
 
 # CSV 파일 로드 함수
