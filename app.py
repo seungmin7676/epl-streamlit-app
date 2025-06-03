@@ -90,7 +90,7 @@ if menu == "전체 분석":
         ax.set_xticklabels(df_ranked["구단"], rotation=90)
         st.pyplot(fig)
 
-    if st.button("승리 횟수 그래프 보기"):
+    if st.button("승리 횟수 그래프"):
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["승"], color="green")
         ax.set_xticks(range(len(df_ranked["구단"])))
