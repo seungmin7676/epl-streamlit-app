@@ -8,13 +8,12 @@ import os
 font_path = "fonts/malgun.ttf"
 
 if os.path.exists(font_path):
-    fm.fontManager.addfont(font_path)
     font_prop = fm.FontProperties(fname=font_path)
-    font_name = font_prop.get_name()
-    plt.rcParams['font.family'] = font_name
+    plt.rcParams['font.family'] = font_prop.get_name()
     plt.rcParams['axes.unicode_minus'] = False
 else:
     print("폰트 파일을 찾을 수 없습니다.")
+
 
 # CSV 파일 로드 함수
 @st.cache_data
