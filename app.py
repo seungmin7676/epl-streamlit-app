@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import os
 
 font_path = "fonts/malgun.ttf"
-
 if os.path.exists(font_path):
     # 폰트를 matplotlib 폰트 매니저에 등록
     fm.fontManager.addfont(font_path)
@@ -16,8 +15,7 @@ if os.path.exists(font_path):
     # 그래프 기본 폰트로 설정
     plt.rcParams['font.family'] = font_name
     plt.rcParams['axes.unicode_minus'] = False
-else:
-    print("폰트 파일을 찾을 수 없습니다.")
+
 
 
 # CSV 파일 로드 함수
