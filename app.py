@@ -9,6 +9,10 @@ font_prop = fm.FontProperties(fname=font_path)
 plt.rcParams['font.family'] = font_prop.get_name()
 plt.rcParams['axes.unicode_minus'] = False
 
+st.write("사용중인 폰트 이름:", font_prop.get_name())
+available_fonts = [f.name for f in fm.fontManager.ttflist]
+st.write("malgun.ttf 포함 여부:", font_prop.get_name() in available_fonts)
+
 # CSV 파일 로드 함수
 @st.cache_data
 def load_data():
