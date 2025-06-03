@@ -1,17 +1,24 @@
 import streamlit as st
 import pandas as pd
-import os
-import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import matplotlib.pyplot as plt
+import os
 
 font_path = "fonts/malgun.ttf"
-font_prop = fm.FontProperties(fname=font_path)
-plt.rcParams['font.family'] = font_prop.get_name()
-plt.rcParams['axes.unicode_minus'] = False
 
-st.write("사용중인 폰트 이름:", font_prop.get_name())
-available_fonts = [f.name for f in fm.fontManager.ttflist]
-st.write("malgun.ttf 포함 여부:", font_prop.get_name() in available_fonts)
+if os.path.exists(font_path):
+    # 폰트를 matplotlib 폰트 매니저에 등록
+    fm.fontManager.addfont(font_path)
+    # 등록한 폰트 이름 얻기
+    font_prop = fm.FontProperties(fname=font_path)
+    font_name = font_prop.get_name()
+
+    # 그래프 기본 폰트로 설정
+    plt.rcParams['font.family'] = font_name
+    plt.rcParams['axes.unicode_minus'] = False
+else:
+    print("폰트 파일을 찾을 수 없습니다.")
+
 
 # CSV 파일 로드 함수
 @st.cache_data
