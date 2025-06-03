@@ -5,15 +5,10 @@ import matplotlib.pyplot as plt
 import os
 
 font_path = "fonts/malgun.ttf"
-
 if os.path.exists(font_path):
-    # 폰트를 matplotlib 폰트 매니저에 등록
     fm.fontManager.addfont(font_path)
-    # 등록한 폰트 이름 얻기
     font_prop = fm.FontProperties(fname=font_path)
     font_name = font_prop.get_name()
-
-    # 그래프 기본 폰트로 설정
     plt.rcParams['font.family'] = font_name
     plt.rcParams['axes.unicode_minus'] = False
 else:
