@@ -6,7 +6,7 @@ import os
 
 # 폰트 설정
 font_path = "fonts/malgun.ttf"
-if os.path.exists(font_patha):
+if os.path.exists(font_path):
     fm.fontManager.addfont(font_path)
     font_prop = fm.FontProperties(fname=font_path)
     font_name = font_prop.get_name()
