@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-font_path = os.path.join(os.getcwd(), "fonts", "malgun.ttf")
+font_path = "fonts/malgun.ttf"
 font_prop = fm.FontProperties(fname=font_path)
 plt.rcParams['font.family'] = font_prop.get_name()
 plt.rcParams['axes.unicode_minus'] = False
