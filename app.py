@@ -1,18 +1,13 @@
 import streamlit as st
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
-import os
 
-# 폰트 파일 경로 (프로젝트 폴더 내 위치 기준)
-font_path = os.path.join("fonts", "malgun.ttf")
-
-# 폰트 프로퍼티 생성
+font_path = os.path.join(os.getcwd(), "fonts", "malgun.ttf")
 font_prop = fm.FontProperties(fname=font_path)
-
-# matplotlib에 폰트 설정
 plt.rcParams['font.family'] = font_prop.get_name()
-plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+plt.rcParams['axes.unicode_minus'] = False
 
 # CSV 파일 로드 함수
 @st.cache_data
