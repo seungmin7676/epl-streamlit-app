@@ -14,13 +14,8 @@ else:
     print("폰트 파일을 찾을 수 없습니다.")
 
 
-# CSV 파일 로드 함수
-@st.cache_data
-def load_data():
-    df = pd.read_csv("epl_data.csv")
-    return df
-
-df = load_data()
+# CSV 파일 로드 
+df = pd.read_csv("epl_data.csv")
 
 # 리그 순위 계산 함수
 def calculate_standings(df):
