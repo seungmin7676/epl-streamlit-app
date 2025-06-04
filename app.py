@@ -234,9 +234,10 @@ if menu == "승부 예측":
     st.header("승부 예측")
 
     team1_list = sorted(df["홈 팀"].unique())
+    team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
     team2_list = [team for team in team1_list if team != team1]
 
-    ol1, col2, col3 = st.columns([5, 1, 5])
+    col1, col2, col3 = st.columns([5, 1, 5])
 
     with col1:
         team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
