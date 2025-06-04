@@ -101,76 +101,96 @@ if menu == "전체 분석":
 
 
 elif menu == "팀별 분석":
-    st.header("팀별 전적 분석")
+    st.header("팀별 분석")
 
+    teams = df["홈 팀"].unique()
+    teams_sorted = sorted(teams)[:20]  # 20개 구단
+
+    # 오른쪽 팀 리스트에 "모두" 추가
+    right_teams = list(teams_sorted) + ["모두"]
+
+    # 두 개의 열로 팀 선택 메뉴 배치
     col1, col2 = st.columns(2)
 
     with col1:
-        base_team = st.selectbox("기준 팀", sorted(df["홈 팀"].unique()))
+        left_team = st.selectbox("왼쪽 팀 선택", teams_sorted, index=0)
 
     with col2:
-        opponent_list = ["모두"] + sorted(df["홈 팀"].unique())
-        opponent_team = st.selectbox("상대 팀", opponent_list)
+        right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams)-1)
 
-    if base_team:
-        if opponent_team == "모두":
-            team_data = df[(df["홈 팀"] == base_team) | (df["원정 팀"] == base_team)]
-            st.subheader(f"📊 {base_team}의 전체 전적")
-        else:
-            team_data = df[
-                ((df["홈 팀"] == base_team) & (df["원정 팀"] == opponent_team)) |
-                ((df["홈 팀"] == opponent_team) & (df["원정 팀"] == base_team))
-            ]
-            st.subheader(f"📊 {base_team} vs {opponent_team} 전적")
+    if right_team == "모두":
+        # 왼쪽 팀의 전체 경기
+        team_data = df[(df["홈 팀"] == left_team) | (df["원정 팀"] == left_team)]
+        st.subheader(f"🏟️ {left_team} 전체 경기 기록 ({len(team_data)}경기)")
 
-        st.dataframe(team_data.reset_index(drop=True))
+    else:
+        # 왼쪽 팀 vs 오른쪽 팀의 경기
+        team_data = df[
+            ((df["홈 팀"] == left_team) & (df["원정 팀"] == right_team)) |
+            ((df["홈 팀"] == right_team) & (df["원정 팀"] == left_team))
+        ]
+        st.subheader(f"🤝 {left_team} vs {right_team} 상대 전적 ({len(team_data)}경기)")
 
-        # 전적 요약 통계 계산
-        wins, draws, losses = 0, 0, 0
-        goals_for, goals_against = 0, 0
-        points = 0
+    # 전적 요약 통계 - 승/무/패, 득점/실점 계산
+    total_games = len(team_data)
+    wins = 0
+    draws = 0
+    losses = 0
+    goals_for = 0
+    goals_against = 0
 
-        for _, row in team_data.iterrows():
-            home, away = row["홈 팀"], row["원정 팀"]
-            home_score, away_score = row["홈 팀 득점"], row["원정 팀 득점"]
-            result = row["경기 결과"]
+    for _, row in team_data.iterrows():
+        home, away = row["홈 팀"], row["원정 팀"]
+        home_score, away_score = row["홈 팀 득점"], row["원정 팀 득점"]
 
-            # 기준 팀이 홈일 때
-            if base_team == home:
-                goals_for += home_score
-                goals_against += away_score
-                if result == "H":
-                    wins += 1
-                    points += 3
-                elif result == "D" or result == "무승부":  # 혹시 '무승부' 텍스트도 있으면 같이 처리
-                    draws += 1
-                    points += 1
-                else:
-                    losses += 1
-            # 기준 팀이 원정일 때
+        if left_team == row["홈 팀"]:
+            goals_for += home_score
+            goals_against += away_score
+            if home_score > away_score:
+                wins += 1
+            elif home_score == away_score:
+                draws += 1
             else:
-                goals_for += away_score
-                goals_against += home_score
-                if result == "A":
-                    wins += 1
-                    points += 3
-                elif result == "D" or result == "무승부":
-                    draws += 1
-                    points += 1
-                else:
-                    losses += 1
+                losses += 1
+        else:  # left_team가 원정팀일 때
+            goals_for += away_score
+            goals_against += home_score
+            if away_score > home_score:
+                wins += 1
+            elif away_score == home_score:
+                draws += 1
+            else:
+                losses += 1
+
+    st.markdown(f"**요약:** 총 경기 {total_games} | 승 {wins} | 무 {draws} | 패 {losses}")
+    st.markdown(f"**득점:** {goals_for} | **실점:** {goals_against}")
+
+    # 경기 날짜 컬럼명이 df에 맞게 맞춰야 함 (예: "경기 날짜" 또는 "날짜" 등)
+    date_col = None
+    for col_candidate in ["경기 날짜", "날짜", "Date"]:
+        if col_candidate in df.columns:
+            date_col = col_candidate
+            break
+    if not date_col:
+        st.error("날짜 컬럼이 데이터에 존재하지 않습니다.")
+        st.stop()
+
+    # 경기 기록 깔끔하게 출력 (날짜 / 점수 / 팀명)
+    for idx, row in team_data.iterrows():
+        col_date, col_home_score, col_home_team, col_away_score, col_away_team = st.columns([1,1,2,1,2])
+        
+        with col_date:
+            st.write(row[date_col])
+        with col_home_score:
+            st.markdown(f"**{row['홈 팀 득점']}**")
+        with col_home_team:
+            st.write(row["홈 팀"])
+        with col_away_score:
+            st.markdown(f"**{row['원정 팀 득점']}**")
+        with col_away_team:
+            st.write(row["원정 팀"])
 
         st.markdown("---")
-        st.subheader("전적 요약")
-        st.write(f"총 경기 수: {len(team_data)}")
-        st.write(f"승리: {wins}회")
-        st.write(f"무승부: {draws}회")
-        st.write(f"패배: {losses}회")
-        st.write(f"득점: {goals_for}점")
-        st.write(f"실점: {goals_against}점")
-        st.write(f"승점: {points}점")
-
-
 
 
 # 승부 예측 메뉴
