@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
+
+import matplotlib.font_manager as fm
 import os
 
 # 폰트 설정
