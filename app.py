@@ -233,23 +233,20 @@ def calculate_win_probabilities(df, home_team, away_team):
 if menu == "승부 예측":
     st.header("승부 예측")
 
-    # 1. 팀 리스트 불러오기 및 팀1 선택
-    team1_list = sorted(df["홈 팀"].unique())
-    
+    # 팀 선택 드롭다운
+    teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단
 
-    # 2. 팀2 리스트는 team1을 제외
-    team2_list = [team for team in team1_list if team != team1]
+    col1, col2, col3 = st.columns([4,1,4])  # 좌측, 가운데, 우측 비율 조정 가능
 
-    # 3. 팀2 선택
-    col1, col2, col3 = st.columns([5, 1, 5])
     with col1:
-        team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
+        team1 = st.selectbox("왼쪽 팀 선택", teams, index=0)
 
     with col2:
-        st.markdown("<div style='text-align:center; margin-top:2rem;'>VS</div>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align:center; margin-top: 10px;'>vs</h3>", unsafe_allow_html=True)
 
     with col3:
-        team2 = st.selectbox("2번 팀 선택 (원정팀)", team2_list)
+        right_teams = [team for team in teams if team != left_team] + ["모두"]
+        team2 = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams) - 1)
 
     # 4. 예측 설명
     st.caption("각 팀이 홈일 때의 경기 결과를 따로 예측합니다. 예측은 배당률을 기반으로 계산됩니다.")
