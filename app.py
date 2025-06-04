@@ -6,10 +6,10 @@ import matplotlib.font_manager as fm
 import os
 
 # 폰트 경로 및 설정
-font_path = "fonts/NanumGothic.ttf"  # 레포 내 포함된 파일
+font_path = "fonts/NanumGothic.ttf" 
 if os.path.exists(font_path):
     font_prop = fm.FontProperties(fname=font_path)
-    plt.rcParams['font.family'] = font_prop.get_name()  # 전체 기본 설정
+    plt.rcParams['font.family'] = font_prop.get_name() 
     plt.rcParams['axes.unicode_minus'] = False
 
 # CSV 파일 로드 
@@ -80,22 +80,23 @@ if menu == "전체 분석":
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["득점"])
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90)
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)  # ✅ 폰트 지정
         st.pyplot(fig)
 
     if st.button("승점 그래프 보기"):
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["승점"], color="orange")
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90)
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)  # ✅ 폰트 지정
         st.pyplot(fig)
 
     if st.button("승리 횟수 그래프 보기"):
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["승"], color="green")
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90)
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)  # ✅ 폰트 지정
         st.pyplot(fig)
+
 
 
 
