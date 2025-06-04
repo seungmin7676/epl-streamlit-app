@@ -141,11 +141,15 @@ if menu == "팀별 분석":
 
     teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단
 
-    # 왼쪽 팀 선택
-    left_team = st.selectbox("왼쪽 팀 선택", teams, index=0)
-    # 오른쪽 팀 선택: 왼쪽 팀 제외 + "모두" 추가
-    right_teams = [team for team in teams if team != left_team] + ["모두"]
-    right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams)-1)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        left_team = st.selectbox("왼쪽 팀 선택", teams, index=0)
+
+    with col2:
+        # 왼쪽 팀 제외하고 '모두' 추가
+        right_teams = [team for team in teams if team != left_team] + ["모두"]
+        right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams) - 1)
 
     # 날짜 컬럼 이름 지정
     date_col = "날짜"
