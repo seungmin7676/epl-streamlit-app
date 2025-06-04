@@ -139,6 +139,7 @@ def format_match_row(date, home_team, home_score, away_score, away_team, highlig
 if menu == "팀별 분석":
     st.header("팀별 분석")
 
+    # 팀 선택 드롭다운
     teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단
 
     col1, col2, col3 = st.columns([4,1,4])  # 좌측, 가운데, 우측 비율 조정 가능
@@ -186,6 +187,18 @@ if menu == "팀별 분석":
             away_team=row["원정 팀"],
             highlight_team=left_team
         ), unsafe_allow_html=True)
+
+    st.subheader("상대 전적 요약")
+
+    total_matches = len(team_data)
+    home_wins = ((team_data["홈 팀"] == left_team) & (team_data["경기 결과"] == "H")).sum()
+    away_wins = ((team_data["원정 팀"] == left_team) & (team_data["경기 결과"] == "A")).sum()
+    draws = (team_data["경기 결과"] == "D").sum()
+
+    st.write(f"총 경기 수: {total_matches}경기")
+    st.write(f"{left_team} 승리: {home_wins + away_wins}경기")
+    st.write(f"무승부: {draws}경기")
+    st.write(f"패배: {total_matches - (home_wins + away_wins + draws)}경기")
 
 
 
