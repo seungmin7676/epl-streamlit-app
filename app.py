@@ -322,85 +322,85 @@ if menu == "승부 예측 게임":
     # 초기 게임 머니 설정
     if "game_money" not in st.session_state:
         st.session_state.game_money = 10000
-    
+
     # 상위 16개 팀 추출
     if "tournament_teams" not in st.session_state:
         top_teams = df["홈 팀"].value_counts().head(16).index.tolist()
         st.session_state.tournament_teams = np.random.choice(top_teams, 16, replace=False).tolist()
         st.session_state.match_index = 0
         st.session_state.next_round_teams = []
-    
-    st.title("⚽ EPL 승부 예측 토너먼트 게임")
-    st.markdown(f"### 💰 현재 게임머니: `{st.session_state.game_money}` 코인")
-    
-    
+
+    st.title("EPL 승부 예측 토너먼트 게임")
+    st.markdown(f"### 현재 게임머니: `{st.session_state.game_money}` 코인")
+
+
     def get_match_probabilities_and_odds(home_team, away_team):
         data1 = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
         data2 = df[(df["홈 팀"] == away_team) & (df["원정 팀"] == home_team)]
-    
+
         odds_list = []
         for data in [data1, data2]:
             if not data.empty:
                 odds_list.append(data[["홈 승 배당률", "무승부 배당률", "원정 승 배당률"]].astype(float).mean())
-    
+
         if len(odds_list) == 0:
             return {
                 "probabilities": [0.33, 0.34, 0.33],
                 "odds": [2.0, 3.0, 2.0]
             }
-    
+
         avg_odds = pd.concat(odds_list, axis=1).mean(axis=1)
         home_odds = avg_odds["홈 승 배당률"]
         draw_odds = avg_odds["무승부 배당률"]
         away_odds = avg_odds["원정 승 배당률"]
-    
+
         total_inverse = (1/home_odds + 1/draw_odds + 1/away_odds)
         home_prob = (1/home_odds) / total_inverse
         draw_prob = (1/draw_odds) / total_inverse
         away_prob = (1/away_odds) / total_inverse
-    
+
         return {
             "probabilities": [home_prob, draw_prob, away_prob],
             "odds": [home_odds, draw_odds, away_odds]
         }
-    
+
     # 현재 라운드 경기 표시
     match_idx = st.session_state.match_index
     teams = st.session_state.tournament_teams
-    
+
     if len(teams) == 1:
-        st.success(f"🏆 토너먼트 우승팀: {teams[0]} 🎉")
+        st.success(f"토너먼트 우승팀: {teams[0]} 🎉")
         st.balloons()
     else:
         home_team = teams[match_idx * 2]
         away_team = teams[match_idx * 2 + 1]
-    
+
         st.markdown(f"### 경기 {match_idx + 1}: `{home_team}` vs `{away_team}`")
-    
+
         probs_odds = get_match_probabilities_and_odds(home_team, away_team)
         probs = probs_odds["probabilities"]
         odds = probs_odds["odds"]
-    
+
         st.write(f"- {home_team} 승 확률: {probs[0]*100:.2f}% (배당률 {odds[0]:.2f})")
         st.write(f"- 무승부 확률: {probs[1]*100:.2f}% (배당률 {odds[1]:.2f})")
         st.write(f"- {away_team} 승 확률: {probs[2]*100:.2f}% (배당률 {odds[2]:.2f})")
-    
+
         bet_option = st.radio("어떤 결과에 배팅하시겠습니까?", 
                               (f"{home_team} 승", "무승부", f"{away_team} 승"))
         bet_amount = st.number_input("배팅 금액을 입력하세요", min_value=100, max_value=st.session_state.game_money, step=100)
-    
+
         if st.button("경기 진행"):
             if bet_amount > st.session_state.game_money:
                 st.error("배팅 금액이 현재 보유 금액을 초과합니다.")
             else:
                 result = np.random.choice(["home", "draw", "away"], p=probs)
                 st.session_state.game_money -= bet_amount
-    
+
                 if "승" in bet_option:
                     user_choice = "home" if home_team in bet_option else "away"
                 else:
                     user_choice = "draw"
-    
+
                 if result == user_choice:
                     result_idx = {"home": 0, "draw": 1, "away": 2}[result]
                     winnings = int(bet_amount * odds[result_idx])
@@ -413,7 +413,7 @@ if menu == "승부 예측 게임":
                         "away": f"{away_team} 승"
                     }
                     st.warning(f"❌ 아쉽습니다. 경기 결과는 {result_str[result]} 입니다.")
-    
+
                 # 승자 결정
                 if result == "home":
                     winner = home_team
@@ -421,23 +421,22 @@ if menu == "승부 예측 게임":
                     winner = away_team
                 else:
                     winner = np.random.choice([home_team, away_team])  # 무승부일 경우 랜덤
-    
+
                 st.session_state.next_round_teams.append(winner)
                 st.session_state.match_index += 1
-    
+
                 # 다음 라운드로 이동
                 if st.session_state.match_index >= len(teams) // 2:
                     st.session_state.tournament_teams = st.session_state.next_round_teams
                     st.session_state.next_round_teams = []
                     st.session_state.match_index = 0
-    
+
                 st.experimental_rerun()
-    
+
     # 초기화 버튼
-    if st.button("🔄 게임 초기화"):
+    if st.button("게임 초기화"):
         del st.session_state.tournament_teams
         del st.session_state.match_index
         del st.session_state.next_round_teams
         st.session_state.game_money = 10000
         st.experimental_rerun()
-    
