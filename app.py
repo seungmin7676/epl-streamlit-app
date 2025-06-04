@@ -16,6 +16,13 @@ if os.path.exists(font_path):
     
 st.text(f"현재 설정된 폰트: {matplotlib.rcParams['font.family']}")
 
+if st.button("폰트 테스트 그래프"):
+    fig, ax = plt.subplots()
+    ax.bar(["토트넘", "첼시", "리버풀"], [1, 2, 3])
+    ax.set_title("EPL 한글 테스트: 득점 순위")
+    st.pyplot(fig)
+
+
 # CSV 파일 로드 
 df = pd.read_csv("epl_data.csv")
 
