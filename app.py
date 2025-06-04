@@ -278,12 +278,12 @@ if menu == "승부 예측":
 
     # 4. 출력
     st.dataframe(
-        match_history[[
-            "날짜", "홈 팀", "원정 팀", 
-            "홈 승 배당률", "무승부 배당률", "원정 승 배당률"
-        ]].reset_index(drop=True),
-        use_container_width=True
-    )
+    match_history.set_index('날짜')[[
+        "홈 팀", "원정 팀", 
+        "홈 승 배당률", "무승부 배당률", "원정 승 배당률"
+    ]],
+    use_container_width=True
+)
 
 
 
