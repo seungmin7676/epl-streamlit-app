@@ -245,7 +245,6 @@ if menu == "승부 예측":
         st.markdown("<h3 style='text-align:center; margin-top: 10px;'>vs</h3>", unsafe_allow_html=True)
 
     with col3:
-        right_teams = [team for team in teams if team != team1] + ["모두"]
         team2 = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams) - 1)
 
     # 4. 예측 설명
