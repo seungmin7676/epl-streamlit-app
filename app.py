@@ -136,53 +136,76 @@ def format_match_row(date, home_team, home_score, away_score, away_team, highlig
     </div>
     """
 
+# 팀별 분석 화면
 if menu == "팀별 분석":
     st.header("팀별 분석")
 
-    teams = df["홈 팀"].unique()
-    teams_sorted = sorted(teams)[:20]  # 20개 구단
-
-    right_teams = list(teams_sorted) + ["모두"]
+    teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단
 
     col1, col2 = st.columns(2)
 
     with col1:
-        left_team = st.selectbox("왼쪽 팀 선택", teams_sorted, index=0)
+        left_team = st.selectbox("왼쪽 팀 선택", teams, index=0)
 
     with col2:
+        right_teams = [team for team in teams if team != left_team] + ["모두"]
         right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams)-1)
 
+    # 데이터 필터링
     if right_team == "모두":
-        team_data = df[(df["홈 팀"] == left_team) | (df["원정 팀"] == left_team)]
-        st.subheader(f"🏟️ {left_team} 전체 경기 기록 ({len(team_data)}경기)")
+        filtered_df = df[(df["홈 팀"] == left_team) | (df["원정 팀"] == left_team)]
     else:
-        team_data = df[
+        filtered_df = df[
             ((df["홈 팀"] == left_team) & (df["원정 팀"] == right_team)) |
             ((df["홈 팀"] == right_team) & (df["원정 팀"] == left_team))
         ]
-        st.subheader(f"🤝 {left_team} vs {right_team} 상대 전적 ({len(team_data)}경기)")
 
-    # 날짜 컬럼 찾기
-    date_col = None
-    for col_candidate in ["경기 날짜", "날짜", "Date"]:
-        if col_candidate in df.columns:
-            date_col = col_candidate
-            break
-    if not date_col:
-        st.error("날짜 컬럼이 데이터에 존재하지 않습니다.")
-        st.stop()
+    # 날짜 최신순 정렬
+    filtered_df = filtered_df.sort_values(by="경기 날짜", ascending=False)
 
-    team_data_sorted = team_data.sort_values(by=date_col, ascending=False)
+    st.markdown(f"### {left_team} vs {right_team} 경기 기록")
 
-    for idx, row in team_data_sorted.iterrows():
-        st.markdown(format_match_row(
-            date=row[date_col],
-            home_team=row["홈 팀"],
-            home_score=row["홈 팀 득점"],
-            away_score=row["원정 팀 득점"],
-            away_team=row["원정 팀"],
-            highlight_team=left_team
-        ), unsafe_allow_html=True)
+    for _, row in filtered_df.iterrows():
+        # 왼쪽 팀은 항상 left_team
+        if row["홈 팀"] == left_team:
+            left_side_team = row["홈 팀"]
+            left_score = row["홈 팀 득점"]
+            right_side_team = row["원정 팀"]
+            right_score = row["원정 팀 득점"]
+            location = "홈"
+        else:
+            left_side_team = row["원정 팀"]
+            left_score = row["원정 팀 득점"]
+            right_side_team = row["홈 팀"]
+            right_score = row["홈 팀 득점"]
+            location = "원정"
+
+        # 경기 결과에 따라 승리팀 표시(굵게)
+        winner = None
+        if left_score > right_score:
+            winner = "left"
+        elif right_score > left_score:
+            winner = "right"
+
+        date = row["경기 날짜"]
+
+        # 스타일링
+        left_team_style = f"font-weight: bold;" if winner == "left" else ""
+        right_team_style = f"font-weight: bold;" if winner == "right" else ""
+        score_style = "font-weight: bold;"
+
+        # 표시 형식: (날짜) (왼쪽팀명) (점수) vs (점수) (오른쪽팀명) [홈/원정]
+        st.markdown(
+            f"<div style='display:flex; justify-content:space-between; margin-bottom:4px;'>"
+            f"<div>{date}</div>"
+            f"<div style='color:black; {left_team_style}'>{left_side_team} {left_score}</div>"
+            f"<div style='font-weight:bold;'>vs</div>"
+            f"<div style='color:black; {score_style}'>{right_score} {right_side_team}</div>"
+            f"<div style='color:black; font-size:small;'>[{location}]</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+
 
 
 
