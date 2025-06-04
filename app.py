@@ -144,12 +144,12 @@ if menu == "팀별 분석":
     col1, col2 = st.columns(2)
 
     with col1:
-        left_team = st.selectbox("왼쪽 팀 선택", teams, index=0)
+        left_team = st.selectbox("팀 선택", teams, index=0)
 
     with col2:
         # 왼쪽 팀 제외하고 '모두' 추가
         right_teams = [team for team in teams if team != left_team] + ["모두"]
-        right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams) - 1)
+        right_team = st.selectbox("", right_teams, index=len(right_teams) - 1)
 
     # 날짜 컬럼 이름 지정
     date_col = "날짜"
