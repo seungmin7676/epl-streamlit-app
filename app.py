@@ -194,10 +194,13 @@ if menu == "팀별 분석":
     home_wins = ((team_data["홈 팀"] == left_team) & (team_data["경기 결과"] == "H")).sum()
     away_wins = ((team_data["원정 팀"] == left_team) & (team_data["경기 결과"] == "A")).sum()
     draws = (team_data["경기 결과"] == "D").sum()
+    losses = total_matches - (home_wins + away_wins + draws)
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("승", f"{home_wins + away_wins} 경기")
+    col2.metric("무", f"{draws} 경기")
+    col3.metric("패", f"{losses} 경기")
 
-    st.write(f"승: {home_wins + away_wins}")
-    st.write(f"무: {draws}")
-    st.write(f"패: {total_matches - (home_wins + away_wins + draws)}")
 
 
 
