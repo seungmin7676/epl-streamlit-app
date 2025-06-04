@@ -251,6 +251,42 @@ if menu == "승부 예측":
     # 4. 예측 설명
     st.caption("각 팀이 홈일 때의 경기 결과를 따로 예측합니다. 예측은 배당률을 기반으로 계산됩니다.")
 
+
+
+
+    # --- 배당률 테이블 ---
+    st.markdown("---")
+    st.markdown("#### 🗂️ 과거 맞대결 배당률 기록")
+
+    # 1. 두 팀 맞대결 중 team1이 홈일 때
+    team1_home_matches = df[
+        (df["홈 팀"] == team1) & (df["원정 팀"] == team2)
+    ][["날짜", "홈 팀", "원정 팀", "홈승 배당률", "무승부 배당률", "원정승 배당률"]].copy()
+    team1_home_matches["경기 형태"] = f"{team1} 홈"
+
+    # 2. 두 팀 맞대결 중 team2가 홈일 때
+    team2_home_matches = df[
+        (df["홈 팀"] == team2) & (df["원정 팀"] == team1)
+    ][["날짜", "홈 팀", "원정 팀", "홈승 배당률", "무승부 배당률", "원정승 배당률"]].copy()
+    team2_home_matches["경기 형태"] = f"{team2} 홈"
+
+    # 3. 두 테이블 합치기
+    match_history = pd.concat([team1_home_matches, team2_home_matches])
+    match_history = match_history.sort_values(by="날짜", ascending=False)
+
+    if not match_history.empty:
+        st.dataframe(
+            match_history[[
+                "날짜", "경기 형태", "홈 팀", "원정 팀", "홈승 배당률", "무승부 배당률", "원정승 배당률"
+            ]].reset_index(drop=True),
+            use_container_width=True
+        )
+    else:
+        st.info(f"{team1}와 {team2}의 맞대결 배당률 기록이 없습니다.")
+
+
+
+
     # 5. 확률 계산
     home_first, home_second = calculate_win_probabilities(df, team1, team2)
 
