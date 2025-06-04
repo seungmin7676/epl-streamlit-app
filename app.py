@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 import matplotlib.font_manager as fm
 import os
@@ -99,7 +100,7 @@ if menu == "전체 분석":
 
 
 
-
+# 팀별 분석 HTML 포맷팅 함수
 def format_match_row(date, home_team, home_score, away_score, away_team, highlight_team):
     # 승리한 팀 글씨 굵게 처리
     if home_score > away_score:
@@ -204,23 +205,69 @@ if menu == "팀별 분석":
 
 
 
+# 승률 계산 함수
+def calculate_win_probabilities(df, home_team, away_team):
+    # 두 시나리오: 1) home_team이 홈일 때, 2) away_team이 홈일 때
+    data1 = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
+    data2 = df[(df["홈 팀"] == away_team) & (df["원정 팀"] == home_team)]
 
-# 승부 예측 메뉴
+    def get_avg_probs(data):
+        if data.empty:
+            return None
+        try:
+            odds = data[["홈 승 배당률", "무승부 배당률", "원정 승 배당률"]].to_numpy(dtype=float)
+            inverse_odds = 1 / odds  # (n, 3)
+            total_inverse = np.sum(inverse_odds, axis=1).reshape(-1, 1)  # (n, 1)
+            probs = inverse_odds / total_inverse  # 정규화된 확률 (n, 3)
+            avg_probs = np.mean(probs, axis=0)
+            return {
+                "home_win": avg_probs[0],
+                "draw": avg_probs[1],
+                "away_win": avg_probs[2]
+            }
+        except Exception as e:
+            return None
+
+    return get_avg_probs(data1), get_avg_probs(data2)
+
 if menu == "승부 예측":
     st.header("승부 예측")
 
-    team1 = st.selectbox("첫 번째 팀 선택", df["홈 팀"].unique())
-    team2 = st.selectbox("두 번째 팀 선택", df["홈 팀"].unique())
+    col1, col2, col3 = st.columns([4, 1, 4])
+    with col1:
+        team1 = st.selectbox("1번 팀 선택", sorted(df["홈 팀"].unique()))
+    with col2:
+        st.markdown("<div style='text-align:center; font-weight:bold; margin-top:2em;'>VS</div>", unsafe_allow_html=True)
+    with col3:
+        team2 = st.selectbox("2번 팀 선택", sorted(df["홈 팀"].unique()), index=1)
 
-    if st.button("승부 예측"):
-        home_games = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)]
-        away_games = df[(df["홈 팀"] == team2) & (df["원정 팀"] == team1)]
+    if team1 == team2:
+        st.warning("서로 다른 팀을 선택해주세요.")
+    else:
+        home_first, home_second = calculate_win_probabilities(df, team1, team2)
 
-        home_win_rate = home_games["경기 결과"].value_counts().get("H", 0) / len(home_games) if len(home_games) > 0 else 0
-        away_win_rate = away_games["경기 결과"].value_counts().get("A", 0) / len(away_games) if len(away_games) > 0 else 0
+        st.subheader("📊 배당률 기반 예측")
 
-        st.write(f"{team1} 홈 승률: {home_win_rate:.2f}")
-        st.write(f"{team2} 원정 승률: {away_win_rate:.2f}")
+        col4, col5 = st.columns(2)
+        if home_first:
+            with col4:
+                st.markdown(f"### 🏟️ {team1} 홈")
+                st.write(f"- {team1} 승 확률: **{home_first['home_win'] * 100:.1f}%**")
+                st.write(f"- 무승부 확률: **{home_first['draw'] * 100:.1f}%**")
+                st.write(f"- {team2} 승 확률: **{home_first['away_win'] * 100:.1f}%**")
+        else:
+            with col4:
+                st.info("해당 경기 기록이 부족합니다.")
+
+        if home_second:
+            with col5:
+                st.markdown(f"### 🏟️ {team2} 홈")
+                st.write(f"- {team2} 승 확률: **{home_second['home_win'] * 100:.1f}%**")
+                st.write(f"- 무승부 확률: **{home_second['draw'] * 100:.1f}%**")
+                st.write(f"- {team1} 승 확률: **{home_second['away_win'] * 100:.1f}%**")
+        else:
+            with col5:
+                st.info("해당 경기 기록이 부족합니다.")
 
 # 승부 예측 게임 메뉴
 if menu == "승부 예측 게임":
