@@ -233,14 +233,18 @@ def calculate_win_probabilities(df, home_team, away_team):
 if menu == "승부 예측":
     st.header("승부 예측")
 
+    # 1. 팀 리스트 불러오기 및 팀1 선택
     team1_list = sorted(df["홈 팀"].unique())
     team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
+
+    # 2. 팀2 리스트는 team1을 제외
     team2_list = [team for team in team1_list if team != team1]
 
+    # 3. 팀2 선택
     col1, col2, col3 = st.columns([5, 1, 5])
-
     with col1:
-        team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
+        st.markdown("#### 🏠 홈 팀")
+        st.write(f"**{team1}**")
 
     with col2:
         st.markdown("<div style='text-align:center; margin-top:2rem;'>VS</div>", unsafe_allow_html=True)
@@ -248,29 +252,36 @@ if menu == "승부 예측":
     with col3:
         team2 = st.selectbox("2번 팀 선택 (원정팀)", team2_list)
 
+    # 4. 예측 설명
+    st.caption("각 팀이 홈일 때의 경기 결과를 따로 예측합니다. 예측은 배당률을 기반으로 계산됩니다.")
+
+    # 5. 확률 계산
     home_first, home_second = calculate_win_probabilities(df, team1, team2)
 
     st.subheader("📊 배당률 기반 예측")
 
     col4, col5 = st.columns(2)
-    if home_first:
-        with col4:
-            st.markdown(f"### 🏟️ {team1} 홈")
+
+    # 6. team1 홈일 때
+    with col4:
+        st.markdown(f"### 🏟️ {team1} 홈")
+        if home_first:
             st.write(f"- {team1} 승 확률: **{home_first['home_win'] * 100:.1f}%**")
             st.write(f"- 무승부 확률: **{home_first['draw'] * 100:.1f}%**")
             st.write(f"- {team2} 승 확률: **{home_first['away_win'] * 100:.1f}%**")
-    else:
-        with col4:
-            st.info("해당 경기 기록이 부족합니다.")
-    if home_second:
-        with col5:
-            st.markdown(f"### 🏟️ {team2} 홈")
+        else:
+            st.info(f"{team1}와 {team2} 간의 홈 경기 기록이 충분하지 않아 예측할 수 없습니다.")
+
+    # 7. team2 홈일 때
+    with col5:
+        st.markdown(f"### 🏟️ {team2} 홈")
+        if home_second:
             st.write(f"- {team2} 승 확률: **{home_second['home_win'] * 100:.1f}%**")
             st.write(f"- 무승부 확률: **{home_second['draw'] * 100:.1f}%**")
             st.write(f"- {team1} 승 확률: **{home_second['away_win'] * 100:.1f}%**")
-    else:
-        with col5:
-            st.info("해당 경기 기록이 부족합니다.")
+        else:
+            st.info(f"{team2}와 {team1} 간의 홈 경기 기록이 충분하지 않아 예측할 수 없습니다.")
+
 
 # 승부 예측 게임 메뉴
 if menu == "승부 예측 게임":
