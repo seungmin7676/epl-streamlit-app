@@ -139,50 +139,47 @@ def format_match_row(date, home_team, home_score, away_score, away_team, highlig
 if menu == "팀별 분석":
     st.header("팀별 분석")
 
-    teams = df["홈 팀"].unique()
-    teams_sorted = sorted(teams)[:20]  # 20개 구단
+    teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단
 
-    right_teams = list(teams_sorted) + ["모두"]
+    # 왼쪽 팀 선택
+    left_team = st.selectbox("왼쪽 팀 선택", teams, index=0)
+    # 오른쪽 팀 선택: 왼쪽 팀 제외 + "모두" 추가
+    right_teams = [team for team in teams if team != left_team] + ["모두"]
+    right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams)-1)
 
-    col1, col2 = st.columns(2)
+    # 날짜 컬럼 이름 지정
+    date_col = "날짜"
 
-    with col1:
-        left_team = st.selectbox("왼쪽 팀 선택", teams_sorted, index=0)
-
-    with col2:
-        right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams)-1)
+    # 날짜 컬럼을 datetime 형식으로 변환 (한 번만)
+    if not pd.api.types.is_datetime64_any_dtype(df[date_col]):
+        df[date_col] = pd.to_datetime(df[date_col])
 
     if right_team == "모두":
+        # 왼쪽 팀이 홈이거나 원정인 모든 경기
         team_data = df[(df["홈 팀"] == left_team) | (df["원정 팀"] == left_team)]
         st.subheader(f"🏟️ {left_team} 전체 경기 기록 ({len(team_data)}경기)")
     else:
+        # 양 팀 간 경기만 필터링
         team_data = df[
             ((df["홈 팀"] == left_team) & (df["원정 팀"] == right_team)) |
             ((df["홈 팀"] == right_team) & (df["원정 팀"] == left_team))
         ]
         st.subheader(f"🤝 {left_team} vs {right_team} 상대 전적 ({len(team_data)}경기)")
 
-    # 날짜 컬럼 찾기
-    date_col = None
-    for col_candidate in ["경기 날짜", "날짜", "Date"]:
-        if col_candidate in df.columns:
-            date_col = col_candidate
-            break
-    if not date_col:
-        st.error("날짜 컬럼이 데이터에 존재하지 않습니다.")
-        st.stop()
-
+    # 날짜 내림차순 정렬
     team_data_sorted = team_data.sort_values(by=date_col, ascending=False)
 
-    for idx, row in team_data_sorted.iterrows():
+    # 경기 출력 함수 (이전 예시 사용)
+    for _, row in team_data_sorted.iterrows():
         st.markdown(format_match_row(
-            date=row[date_col],
+            date=row[date_col].strftime("%Y-%m-%d"),
             home_team=row["홈 팀"],
             home_score=row["홈 팀 득점"],
             away_score=row["원정 팀 득점"],
             away_team=row["원정 팀"],
             highlight_team=left_team
         ), unsafe_allow_html=True)
+
 
 
 
