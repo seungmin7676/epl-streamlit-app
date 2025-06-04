@@ -277,16 +277,13 @@ if menu == "승부 예측":
     match_history = match_history.sort_values(by="날짜", ascending=False)
 
     # 4. 출력
-    if not match_history.empty:
-        st.dataframe(
-            match_history[[
-                "날짜", "홈 팀", "원정 팀", 
-                "홈 승 배당률", "무승부 배당률", "원정 승 배당률"
-            ]].reset_index(drop=True),
-            use_container_width=True
-        )
-    else:
-        st.info(f"{team1}와 {team2}의 맞대결 기록이 없습니다.")
+    st.dataframe(
+        match_history[[
+            "날짜", "홈 팀", "원정 팀", 
+            "홈 승 배당률", "무승부 배당률", "원정 승 배당률"
+        ]].reset_index(drop=True),
+        use_container_width=True
+    )
 
 
 
