@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import os
 
+matplotlib.font_manager._rebuild()
 # 폰트 설정
 font_path = "fonts/NanumGothic.ttf"
 if os.path.exists(font_path):
