@@ -140,16 +140,17 @@ def format_match_row(date, home_team, home_score, away_score, away_team, highlig
 if menu == "팀별 분석":
     st.header("팀별 분석")
 
-    teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단
+    all_teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단 리스트
 
     col1, col2 = st.columns(2)
 
     with col1:
-        left_team = st.selectbox("왼쪽 팀 선택", teams, index=0)
+        left_team = st.selectbox("왼쪽 팀 선택", all_teams, index=0)
 
     with col2:
-        right_teams = [team for team in teams if team != left_team] + ["모두"]
-        right_team = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams)-1)
+        # 오른쪽 팀은 왼쪽 팀 제외 + "모두" 추가
+        right_team_options = [team for team in all_teams if team != left_team] + ["모두"]
+        right_team = st.selectbox("오른쪽 팀 선택", right_team_options, index=len(right_team_options) - 1)
 
     # 데이터 필터링
     if right_team == "모두":
@@ -166,7 +167,7 @@ if menu == "팀별 분석":
     st.markdown(f"### {left_team} vs {right_team} 경기 기록")
 
     for _, row in filtered_df.iterrows():
-        # 왼쪽 팀은 항상 left_team
+        # 왼쪽 팀이 항상 left_team 위치
         if row["홈 팀"] == left_team:
             left_side_team = row["홈 팀"]
             left_score = row["홈 팀 득점"]
@@ -180,7 +181,6 @@ if menu == "팀별 분석":
             right_score = row["홈 팀 득점"]
             location = "원정"
 
-        # 경기 결과에 따라 승리팀 표시(굵게)
         winner = None
         if left_score > right_score:
             winner = "left"
@@ -189,18 +189,16 @@ if menu == "팀별 분석":
 
         date = row["경기 날짜"]
 
-        # 스타일링
-        left_team_style = f"font-weight: bold;" if winner == "left" else ""
-        right_team_style = f"font-weight: bold;" if winner == "right" else ""
+        left_team_style = "font-weight: bold;" if winner == "left" else ""
+        right_team_style = "font-weight: bold;" if winner == "right" else ""
         score_style = "font-weight: bold;"
 
-        # 표시 형식: (날짜) (왼쪽팀명) (점수) vs (점수) (오른쪽팀명) [홈/원정]
         st.markdown(
             f"<div style='display:flex; justify-content:space-between; margin-bottom:4px;'>"
             f"<div>{date}</div>"
             f"<div style='color:black; {left_team_style}'>{left_side_team} {left_score}</div>"
             f"<div style='font-weight:bold;'>vs</div>"
-            f"<div style='color:black; {score_style}'>{right_score} {right_side_team}</div>"
+            f"<div style='color:black; {right_team_style}'>{right_score} {right_side_team}</div>"
             f"<div style='color:black; font-size:small;'>[{location}]</div>"
             f"</div>",
             unsafe_allow_html=True
