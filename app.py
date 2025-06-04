@@ -235,7 +235,7 @@ if menu == "승부 예측":
 
     # 1. 팀 리스트 불러오기 및 팀1 선택
     team1_list = sorted(df["홈 팀"].unique())
-    team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
+    
 
     # 2. 팀2 리스트는 team1을 제외
     team2_list = [team for team in team1_list if team != team1]
@@ -243,8 +243,7 @@ if menu == "승부 예측":
     # 3. 팀2 선택
     col1, col2, col3 = st.columns([5, 1, 5])
     with col1:
-        st.markdown("#### 🏠 홈 팀")
-        st.write(f"**{team1}**")
+        team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
 
     with col2:
         st.markdown("<div style='text-align:center; margin-top:2rem;'>VS</div>", unsafe_allow_html=True)
