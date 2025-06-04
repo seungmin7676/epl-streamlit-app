@@ -233,41 +233,43 @@ def calculate_win_probabilities(df, home_team, away_team):
 if menu == "승부 예측":
     st.header("승부 예측")
 
-    col1, col2, col3 = st.columns([4, 1, 4])
+    team1_list = sorted(df["홈 팀"].unique())
+    team2_list = [team for team in team1_list if team != team1]
+
+    ol1, col2, col3 = st.columns([5, 1, 5])
+
     with col1:
-        team1 = st.selectbox("1번 팀 선택", sorted(df["홈 팀"].unique()))
+        team1 = st.selectbox("1번 팀 선택 (홈팀)", team1_list)
+
     with col2:
-        st.markdown("<div style='text-align:center; font-weight:bold; margin-top:2em;'>VS</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; margin-top:2rem;'>VS</div>", unsafe_allow_html=True)
+
     with col3:
-        team2 = st.selectbox("2번 팀 선택", sorted(df["홈 팀"].unique()), index=1)
+        team2 = st.selectbox("2번 팀 선택 (원정팀)", team2_list)
 
-    if team1 == team2:
-        st.warning("서로 다른 팀을 선택해주세요.")
+    home_first, home_second = calculate_win_probabilities(df, team1, team2)
+
+    st.subheader("📊 배당률 기반 예측")
+
+    col4, col5 = st.columns(2)
+    if home_first:
+        with col4:
+            st.markdown(f"### 🏟️ {team1} 홈")
+            st.write(f"- {team1} 승 확률: **{home_first['home_win'] * 100:.1f}%**")
+            st.write(f"- 무승부 확률: **{home_first['draw'] * 100:.1f}%**")
+            st.write(f"- {team2} 승 확률: **{home_first['away_win'] * 100:.1f}%**")
     else:
-        home_first, home_second = calculate_win_probabilities(df, team1, team2)
-
-        st.subheader("📊 배당률 기반 예측")
-
-        col4, col5 = st.columns(2)
-        if home_first:
-            with col4:
-                st.markdown(f"### 🏟️ {team1} 홈")
-                st.write(f"- {team1} 승 확률: **{home_first['home_win'] * 100:.1f}%**")
-                st.write(f"- 무승부 확률: **{home_first['draw'] * 100:.1f}%**")
-                st.write(f"- {team2} 승 확률: **{home_first['away_win'] * 100:.1f}%**")
-        else:
-            with col4:
-                st.info("해당 경기 기록이 부족합니다.")
-
-        if home_second:
-            with col5:
-                st.markdown(f"### 🏟️ {team2} 홈")
-                st.write(f"- {team2} 승 확률: **{home_second['home_win'] * 100:.1f}%**")
-                st.write(f"- 무승부 확률: **{home_second['draw'] * 100:.1f}%**")
-                st.write(f"- {team1} 승 확률: **{home_second['away_win'] * 100:.1f}%**")
-        else:
-            with col5:
-                st.info("해당 경기 기록이 부족합니다.")
+        with col4:
+            st.info("해당 경기 기록이 부족합니다.")
+    if home_second:
+        with col5:
+            st.markdown(f"### 🏟️ {team2} 홈")
+            st.write(f"- {team2} 승 확률: **{home_second['home_win'] * 100:.1f}%**")
+            st.write(f"- 무승부 확률: **{home_second['draw'] * 100:.1f}%**")
+            st.write(f"- {team1} 승 확률: **{home_second['away_win'] * 100:.1f}%**")
+    else:
+        with col5:
+            st.info("해당 경기 기록이 부족합니다.")
 
 # 승부 예측 게임 메뉴
 if menu == "승부 예측 게임":
