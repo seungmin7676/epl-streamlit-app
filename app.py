@@ -195,10 +195,9 @@ if menu == "팀별 분석":
     away_wins = ((team_data["원정 팀"] == left_team) & (team_data["경기 결과"] == "A")).sum()
     draws = (team_data["경기 결과"] == "D").sum()
 
-    st.write(f"총 경기 수: {total_matches}경기")
-    st.write(f"{left_team} 승리: {home_wins + away_wins}경기")
-    st.write(f"무승부: {draws}경기")
-    st.write(f"패배: {total_matches - (home_wins + away_wins + draws)}경기")
+    st.write(f"{left_team} 승: {home_wins + away_wins}경기")
+    st.write(f"무: {draws}경기")
+    st.write(f"패: {total_matches - (home_wins + away_wins + draws)}경기")
 
 
 
