@@ -7,13 +7,12 @@ import matplotlib.font_manager as fm
 import os
 
 # 폰트 설정
-font_path = "fonts/NanumGothicCoding.ttf"
+font_path = "fonts/NanumGothic.ttf"
 if os.path.exists(font_path):
     font_prop = fm.FontProperties(fname=font_path)
     plt.rcParams['font.family'] = font_prop.get_name()
     plt.rcParams['axes.unicode_minus'] = False
-else:
-    print("폰트 파일을 찾을 수 없습니다.")
+
     
 st.text(f"현재 설정된 폰트: {matplotlib.rcParams['font.family']}")
 
