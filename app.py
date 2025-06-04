@@ -256,7 +256,7 @@ if menu == "승부 예측":
 
     # --- 배당률 테이블 ---
     st.markdown("---")
-    st.markdown("####배당률 데이터")
+    st.markdown("#### 배당률 데이터")
 
     # 1. team1 홈 경기 (vs team2)
     team1_home_matches = df[
@@ -296,8 +296,6 @@ if menu == "승부 예측":
     # 5. 확률 계산
     home_first, home_second = calculate_win_probabilities(df, team1, team2)
 
-    st.subheader("배당률 기반 예측 : ")
-
     col4, col5 = st.columns(2)
 
     # 6. team1 홈일 때
@@ -316,7 +314,7 @@ if menu == "승부 예측":
         st.write(f"- 무승부 확률: **{home_second['draw'] * 100:.1f}%**")
         st.write(f"- {team1} 승 확률: **{home_second['away_win'] * 100:.1f}%**")
         st.markdown("---")
-    st.markdown("#### 📘 승부 예측 알고리즘 안내")
+    st.markdown("#### 승부 예측 알고리즘 안내")
     st.markdown("""
     승리 확률 예측은 **배당률을 확률로 변환하는 공식**을 따릅니다.  
     각 결과의 확률은 다음 수식을 사용해 계산됩니다:
