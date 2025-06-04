@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 
 import matplotlib.font_manager as fm
@@ -13,7 +14,8 @@ if os.path.exists(font_path):
     plt.rcParams['axes.unicode_minus'] = False
 else:
     print("폰트 파일을 찾을 수 없습니다.")
-
+    
+st.text(f"현재 설정된 폰트: {matplotlib.rcParams['font.family']}")
 
 # CSV 파일 로드 
 df = pd.read_csv("epl_data.csv")
