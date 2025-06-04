@@ -100,7 +100,21 @@ if menu == "전체 분석":
 
 
 
-elif menu == "팀별 분석":
+def format_match_row(date, home_team, home_score, away_score, away_team):
+    return f"""
+    <div style="padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; background-color:#f9f9f9;">
+        <div style="font-size:0.85em; color:gray; margin-bottom:4px;">{date}</div>
+        <div style="font-weight:bold; font-size:1.1em; display:flex; align-items:center; justify-content:center;">
+            <span style="color:#1f77b4;">{home_team}</span>
+            <span style="color:#1f77b4; font-weight:bold; margin: 0 6px;">{home_score}</span>
+            <span style="color:#666666; font-weight:bold; margin: 0 6px;">vs</span>
+            <span style="color:#d62728; font-weight:bold; margin: 0 6px;">{away_score}</span>
+            <span style="color:#d62728;">{away_team}</span>
+        </div>
+    </div>
+    """
+
+if menu == "팀별 분석":
     st.header("팀별 분석")
 
     teams = df["홈 팀"].unique()
@@ -125,6 +139,7 @@ elif menu == "팀별 분석":
             ((df["홈 팀"] == right_team) & (df["원정 팀"] == left_team))
         ]
         st.subheader(f"🤝 {left_team} vs {right_team} 상대 전적 ({len(team_data)}경기)")
+
 
     # 요약 통계
     total_games = len(team_data)
@@ -156,29 +171,25 @@ elif menu == "팀별 분석":
     st.markdown(f"**요약:** 총 경기 {total_games} | 승 {wins} | 무 {draws} | 패 {losses}")
     st.markdown(f"**득점:** {goals_for} | **실점:** {goals_against}")
 
-    # 날짜 컬럼 확인
+    # 날짜 컬럼 찾기
     date_col = None
     for col_candidate in ["경기 날짜", "날짜", "Date"]:
         if col_candidate in df.columns:
             date_col = col_candidate
             break
-    if not date_col:
-        st.error("날짜 컬럼이 데이터에 존재하지 않습니다.")
-        st.stop()
 
     # 날짜 내림차순 정렬
     team_data_sorted = team_data.sort_values(by=date_col, ascending=False)
 
     # 경기별 출력 (날짜) (팀명) (점수) vs (점수) (팀명)
     for idx, row in team_data_sorted.iterrows():
-        date_str = row[date_col]
-        home_team = row["홈 팀"]
-        away_team = row["원정 팀"]
-        home_score = row["홈 팀 득점"]
-        away_score = row["원정 팀 득점"]
-
-        st.markdown(f"**{date_str}**  {home_team}  **{home_score}**  vs  **{away_score}**  {away_team}")
-        st.markdown("---")
+        st.markdown(format_match_row(
+            date=row[date_col],
+            home_team=row["홈 팀"],
+            home_score=row["홈 팀 득점"],
+            away_score=row["원정 팀 득점"],
+            away_team=row["원정 팀"]
+        ), unsafe_allow_html=True)
 
 
 
