@@ -197,9 +197,9 @@ if menu == "팀별 분석":
     losses = total_matches - (home_wins + away_wins + draws)
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("승", f"{home_wins + away_wins} 경기")
-    col2.metric("무", f"{draws} 경기")
-    col3.metric("패", f"{losses} 경기")
+    col1.metric("승", f"{home_wins + away_wins}")
+    col2.metric("무", f"{draws}")
+    col3.metric("패", f"{losses}")
 
 
 
