@@ -100,16 +100,38 @@ if menu == "전체 분석":
 
 
 
-def format_match_row(date, home_team, home_score, away_score, away_team):
+def format_match_row(date, home_team, home_score, away_score, away_team, highlight_team):
+    # 승리한 팀 글씨 굵게 처리
+    if home_score > away_score:
+        home_style = "font-weight:bold;"
+        away_style = "font-weight:normal;"
+    elif home_score < away_score:
+        home_style = "font-weight:normal;"
+        away_style = "font-weight:bold;"
+    else:  # 무승부
+        home_style = "font-weight:normal;"
+        away_style = "font-weight:normal;"
+
+    # highlight_team을 왼쪽으로 오게 강제
+    if home_team == highlight_team:
+        left_team, left_score, left_style, left_ha = home_team, home_score, home_style, "홈"
+        right_team, right_score, right_style, right_ha = away_team, away_score, away_style, "원정"
+    else:
+        left_team, left_score, left_style, left_ha = away_team, away_score, away_style, "원정"
+        right_team, right_score, right_style, right_ha = home_team, home_score, home_style, "홈"
+
     return f"""
     <div style="padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; background-color:#f9f9f9;">
         <div style="font-size:0.85em; color:gray; margin-bottom:4px;">{date}</div>
-        <div style="font-weight:bold; font-size:1.1em; display:flex; align-items:center; justify-content:center;">
-            <span style="color:#1f77b4;">{home_team}</span>
-            <span style="color:#1f77b4; font-weight:bold; margin: 0 6px;">{home_score}</span>
-            <span style="color:#666666; font-weight:bold; margin: 0 6px;">vs</span>
-            <span style="color:#d62728; font-weight:bold; margin: 0 6px;">{away_score}</span>
-            <span style="color:#d62728;">{away_team}</span>
+        <div style="font-size:0.85em; color:gray; margin-bottom:4px;">
+            <span>{left_ha}</span> vs <span>{right_ha}</span>
+        </div>
+        <div style="font-size:1.1em; display:flex; align-items:center; justify-content:center; gap:6px; color:black;">
+            <span style="{left_style}">{left_team}</span>
+            <span style="{left_style}">{left_score}</span>
+            <span style="font-weight:bold; margin: 0 6px;">vs</span>
+            <span style="{right_style}">{right_score}</span>
+            <span style="{right_style}">{right_team}</span>
         </div>
     </div>
     """
@@ -140,61 +162,32 @@ if menu == "팀별 분석":
         ]
         st.subheader(f"🤝 {left_team} vs {right_team} 상대 전적 ({len(team_data)}경기)")
 
-
-    # 요약 통계
-    total_games = len(team_data)
-    wins = draws = losses = goals_for = goals_against = 0
-
-    for _, row in team_data.iterrows():
-        home, away = row["홈 팀"], row["원정 팀"]
-        home_score, away_score = row["홈 팀 득점"], row["원정 팀 득점"]
-
-        if left_team == home:
-            goals_for += home_score
-            goals_against += away_score
-            if home_score > away_score:
-                wins += 1
-            elif home_score == away_score:
-                draws += 1
-            else:
-                losses += 1
-        else:
-            goals_for += away_score
-            goals_against += home_score
-            if away_score > home_score:
-                wins += 1
-            elif away_score == home_score:
-                draws += 1
-            else:
-                losses += 1
-
-    st.markdown(f"**요약:** 총 경기 {total_games} | 승 {wins} | 무 {draws} | 패 {losses}")
-    st.markdown(f"**득점:** {goals_for} | **실점:** {goals_against}")
-
     # 날짜 컬럼 찾기
     date_col = None
     for col_candidate in ["경기 날짜", "날짜", "Date"]:
         if col_candidate in df.columns:
             date_col = col_candidate
             break
+    if not date_col:
+        st.error("날짜 컬럼이 데이터에 존재하지 않습니다.")
+        st.stop()
 
-    # 날짜 내림차순 정렬
     team_data_sorted = team_data.sort_values(by=date_col, ascending=False)
 
-    # 경기별 출력 (날짜) (팀명) (점수) vs (점수) (팀명)
     for idx, row in team_data_sorted.iterrows():
         st.markdown(format_match_row(
             date=row[date_col],
             home_team=row["홈 팀"],
             home_score=row["홈 팀 득점"],
             away_score=row["원정 팀 득점"],
-            away_team=row["원정 팀"]
+            away_team=row["원정 팀"],
+            highlight_team=left_team
         ), unsafe_allow_html=True)
 
 
 
 # 승부 예측 메뉴
-elif menu == "승부 예측":
+if menu == "승부 예측":
     st.header("승부 예측")
 
     team1 = st.selectbox("첫 번째 팀 선택", df["홈 팀"].unique())
@@ -211,7 +204,7 @@ elif menu == "승부 예측":
         st.write(f"{team2} 원정 승률: {away_win_rate:.2f}")
 
 # 승부 예측 게임 메뉴
-elif menu == "승부 예측 게임":
+if menu == "승부 예측 게임":
     st.header("승부 예측 게임")
 
     budget = 10000  # 초기 금액
