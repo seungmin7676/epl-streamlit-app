@@ -11,20 +11,6 @@ if os.path.exists(font_path):
     font_prop = fm.FontProperties(fname=font_path)
     plt.rcParams['font.family'] = font_prop.get_name()  # 전체 기본 설정
     plt.rcParams['axes.unicode_minus'] = False
-else:
-    st.error("폰트 파일을 찾을 수 없습니다.")
-
-if st.button("한글 그래프 테스트"):
-    fig, ax = plt.subplots()
-    labels = ["토트넘", "첼시", "맨시티"]
-    values = [3, 2, 4]
-    
-    ax.bar(labels, values)
-    ax.set_title("한글 그래프 제목", fontproperties=font_prop)
-    ax.set_xticklabels(labels, fontproperties=font_prop)
-    ax.set_ylabel("득점 수", fontproperties=font_prop)
-    
-    st.pyplot(fig)
 
 # CSV 파일 로드 
 df = pd.read_csv("epl_data.csv")
