@@ -165,7 +165,7 @@ if menu == "팀별 분석":
     if right_team == "모두":
         # 왼쪽 팀이 홈이거나 원정인 모든 경기
         team_data = df[(df["홈 팀"] == left_team) | (df["원정 팀"] == left_team)]
-        st.subheader(f"🏟️ {left_team} 전체 경기 기록 ({len(team_data)}경기)")
+        st.subheader(f"{left_team} 전체 경기 기록 ({len(team_data)} 경기)")
     else:
         # 양 팀 간 경기만 필터링
         team_data = df[
