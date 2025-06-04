@@ -80,47 +80,54 @@ if menu == "전체 분석":
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["득점"])
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)  # ✅ 폰트 지정
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop) 
         st.pyplot(fig)
 
     if st.button("승점 그래프 보기"):
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["승점"], color="orange")
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)  # ✅ 폰트 지정
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop) 
         st.pyplot(fig)
 
     if st.button("승리 횟수 그래프 보기"):
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["승"], color="green")
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)  # ✅ 폰트 지정
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop) 
         st.pyplot(fig)
 
 
 
 
-# 팀별 분석 화면
 elif menu == "팀별 분석":
-    st.header(f"{st.session_state.get('selected_team', '팀')} 분석")
+    st.header("팀별 전적 분석")
 
-    # 선택한 팀의 데이터 필터링
-    team_data = df[(df["홈 팀"] == st.session_state.get('selected_team')) | (df["원정 팀"] == st.session_state.get('selected_team'))]
+    col1, col2 = st.columns(2)
 
-    # 최근 경기 데이터 표시
-    st.write(f"최근 경기 기록 ({st.session_state.get('selected_team')})")
-    st.dataframe(team_data.tail(10))
+    with col1:
+        base_team = st.selectbox("기준 팀", sorted(df["홈 팀"].unique()))
 
-    # 상대 팀 분석 버튼
-    opponent = st.selectbox("상대 전적 보기", team_data["홈 팀"].unique())
-    if opponent:
-        opponent_data = df[(df["홈 팀"] == opponent) | (df["원정 팀"] == opponent)]
-        st.write(f"🔎 {opponent} 팀과의 전적")
-        st.dataframe(opponent_data)
+    with col2:
+        opponent_list = ["모두"] + sorted(df["홈 팀"].unique())
+        opponent_team = st.selectbox("상대 팀", opponent_list)
 
-        if st.button("다음 경기 예측"):
-            st.session_state["prediction_team"] = opponent
-            st.experimental_rerun()
+    if base_team:
+        if opponent_team == "모두":
+            # 기준 팀이 참여한 모든 경기
+            team_data = df[(df["홈 팀"] == base_team) | (df["원정 팀"] == base_team)]
+            st.subheader(f"📊 {base_team}의 전체 전적")
+        else:
+            # 양 팀 간의 전적
+            team_data = df[
+                ((df["홈 팀"] == base_team) & (df["원정 팀"] == opponent_team)) |
+                ((df["홈 팀"] == opponent_team) & (df["원정 팀"] == base_team))
+            ]
+            st.subheader(f"📊 {base_team} vs {opponent_team} 전적")
+
+        st.dataframe(team_data.reset_index(drop=True))
+
+
 
 # 승부 예측 메뉴
 elif menu == "승부 예측":
