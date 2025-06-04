@@ -310,13 +310,13 @@ if menu == "승부 예측":
         st.write(f"- 무승부 확률: **{home_second['draw'] * 100:.1f}%**")
         st.write(f"- {team1} 승 확률: **{home_second['away_win'] * 100:.1f}%**")
         st.markdown("---")
-    st.markdown("#### 승부 예측 알고리즘 안내")
+    st.markdown("#### 승리 확률 예측 알고리즘 안내")
     st.markdown("""
     승리 확률 예측은 **배당률을 확률로 변환하는 공식**을 따릅니다.  
-    각 결과의 확률은 다음 수식을 사용해 계산됩니다:
+    각 결과의 확률은 다음 수식을 사용해 계산됩니다.
     """)
     st.latex(r"""
-    \text{결과} = \frac{1/\text{배당률}}{1/\text{홈 승 배당률} + 1/\text{무승부 배당률} + 1/\text{원정 승 배당률}}
+    \text{승리 확률} = \frac{1/\text{배당률}}{1/\text{홈 승 배당률} + 1/\text{무승부 배당률} + 1/\text{원정 승 배당률}}
     """)
 
 
