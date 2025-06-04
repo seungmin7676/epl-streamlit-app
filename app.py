@@ -256,7 +256,7 @@ if menu == "승부 예측":
 
     # --- 배당률 테이블 ---
     st.markdown("---")
-    st.markdown("#### 🗂️ 과거 맞대결 배당률 기록")
+    st.markdown("####배당률 데이터")
 
     # 1. team1 홈 경기 (vs team2)
     team1_home_matches = df[
@@ -322,7 +322,7 @@ if menu == "승부 예측":
     각 결과의 확률은 다음 수식을 사용해 계산됩니다:
     """)
     st.latex(r"""
-    P(\text{결과}) = \frac{1/\text{배당률}}{1/\text{홈승 배당} + 1/\text{무승부 배당} + 1/\text{원정승 배당}}
+    \text{결과} = \frac{1/\text{배당률}}{1/\text{홈 승 배당률} + 1/\text{무승부 배당률} + 1/\text{원정 승 배당률}}
     """)
 
 
