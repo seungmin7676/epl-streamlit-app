@@ -191,7 +191,7 @@ if menu == "팀별 분석":
         elif right_score > left_score:
             winner = "right"
 
-        date = row["경기 날짜"]
+        date = row["날짜"]
 
         left_team_style = "font-weight: bold;" if winner == "left" else ""
         right_team_style = "font-weight: bold;" if winner == "right" else ""
