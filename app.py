@@ -1,27 +1,18 @@
 import streamlit as st
 import pandas as pd
-import matplotlib
 import matplotlib.pyplot as plt
 
 import matplotlib.font_manager as fm
 import os
 
-matplotlib.font_manager._rebuild()
-# 폰트 설정
-font_path = "fonts/NanumGothic.ttf"
+# 폰트 경로 및 설정
+font_path = "fonts/NanumGothic.ttf"  # 레포 내 포함된 파일
 if os.path.exists(font_path):
     font_prop = fm.FontProperties(fname=font_path)
-    plt.rcParams['font.family'] = font_prop.get_name()
+    plt.rcParams['font.family'] = font_prop.get_name()  # 전체 기본 설정
     plt.rcParams['axes.unicode_minus'] = False
-
-    
-st.text(f"현재 설정된 폰트: {matplotlib.rcParams['font.family']}")
-
-if st.button("폰트 테스트 그래프"):
-    fig, ax = plt.subplots()
-    ax.bar(["토트넘", "첼시", "리버풀"], [1, 2, 3])
-    ax.set_title("EPL 한글 테스트: 득점 순위")
-    st.pyplot(fig)
+else:
+    st.error("폰트 파일을 찾을 수 없습니다.")
 
 
 # CSV 파일 로드 
