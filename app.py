@@ -245,7 +245,8 @@ if menu == "승부 예측":
         st.markdown("<h3 style='text-align:center; margin-top: 10px;'>vs</h3>", unsafe_allow_html=True)
 
     with col3:
-        team2 = st.selectbox("오른쪽 팀 선택", team1, index=len(team1) - 1)
+        right_teams = [team for team in teams if team != team1]
+        team2 = st.selectbox("오른쪽 팀 선택", right_teams, index=len(right_teams) - 1)
 
     # 4. 예측 설명
     st.caption("각 팀이 홈일 때의 경기 결과를 따로 예측합니다. 예측은 배당률을 기반으로 계산됩니다.")
