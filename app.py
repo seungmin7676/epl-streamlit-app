@@ -164,7 +164,7 @@ if menu == "팀별 분석":
         ]
 
     # 날짜 최신순 정렬
-    filtered_df = filtered_df.sort_values(by="경기 날짜", ascending=False)
+    filtered_df = filtered_df.sort_values(by="날짜", ascending=False)
 
     st.markdown(f"### {left_team} vs {right_team} 경기 기록")
 
