@@ -140,19 +140,21 @@ def format_match_row(date, home_team, home_score, away_score, away_team, highlig
 if menu == "팀별 분석":
     st.header("팀별 분석")
 
-    all_teams = sorted(df["홈 팀"].unique())[:20]  # 20개 구단 리스트
+    # 20개 구단 리스트 (정렬된 상태)
+    all_teams = sorted(df["홈 팀"].unique())[:20]
 
+    # 좌우 컬럼 생성
     col1, col2 = st.columns(2)
 
     with col1:
         left_team = st.selectbox("왼쪽 팀 선택", all_teams, index=0)
 
     with col2:
-        # 오른쪽 팀은 왼쪽 팀 제외 + "모두" 추가
+        # 오른쪽 팀은 왼쪽 팀 제외 + '모두' 추가
         right_team_options = [team for team in all_teams if team != left_team] + ["모두"]
         right_team = st.selectbox("오른쪽 팀 선택", right_team_options, index=len(right_team_options) - 1)
 
-    # 데이터 필터링
+    # 경기 데이터 필터링
     if right_team == "모두":
         filtered_df = df[(df["홈 팀"] == left_team) | (df["원정 팀"] == left_team)]
     else:
@@ -166,6 +168,7 @@ if menu == "팀별 분석":
 
     st.markdown(f"### {left_team} vs {right_team} 경기 기록")
 
+    # 경기별 표시
     for _, row in filtered_df.iterrows():
         # 왼쪽 팀이 항상 left_team 위치
         if row["홈 팀"] == left_team:
@@ -181,6 +184,7 @@ if menu == "팀별 분석":
             right_score = row["홈 팀 득점"]
             location = "원정"
 
+        # 승리팀 판단
         winner = None
         if left_score > right_score:
             winner = "left"
@@ -191,10 +195,10 @@ if menu == "팀별 분석":
 
         left_team_style = "font-weight: bold;" if winner == "left" else ""
         right_team_style = "font-weight: bold;" if winner == "right" else ""
-        score_style = "font-weight: bold;"
 
+        # 출력 (검정색 글씨, 승리팀 볼드체, 날짜 기본 색)
         st.markdown(
-            f"<div style='display:flex; justify-content:space-between; margin-bottom:4px;'>"
+            f"<div style='display:flex; justify-content:space-between; margin-bottom:6px;'>"
             f"<div>{date}</div>"
             f"<div style='color:black; {left_team_style}'>{left_side_team} {left_score}</div>"
             f"<div style='font-weight:bold;'>vs</div>"
@@ -203,7 +207,6 @@ if menu == "팀별 분석":
             f"</div>",
             unsafe_allow_html=True
         )
-
 
 
 
