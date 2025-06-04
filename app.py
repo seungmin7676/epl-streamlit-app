@@ -254,13 +254,13 @@ if menu == "승부 예측":
     # 5. 확률 계산
     home_first, home_second = calculate_win_probabilities(df, team1, team2)
 
-    st.subheader("📊 배당률 기반 예측")
+    st.subheader("배당률 기반 예측")
 
     col4, col5 = st.columns(2)
 
     # 6. team1 홈일 때
     with col4:
-        st.markdown(f"### 🏟️ {team1} 홈")
+        st.markdown(f"### {team1} 홈")
         if home_first:
             st.write(f"- {team1} 승 확률: **{home_first['home_win'] * 100:.1f}%**")
             st.write(f"- 무승부 확률: **{home_first['draw'] * 100:.1f}%**")
@@ -270,7 +270,7 @@ if menu == "승부 예측":
 
     # 7. team2 홈일 때
     with col5:
-        st.markdown(f"### 🏟️ {team2} 홈")
+        st.markdown(f"### {team2} 홈")
         if home_second:
             st.write(f"- {team2} 승 확률: **{home_second['home_win'] * 100:.1f}%**")
             st.write(f"- 무승부 확률: **{home_second['draw'] * 100:.1f}%**")
