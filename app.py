@@ -114,11 +114,9 @@ elif menu == "팀별 분석":
 
     if base_team:
         if opponent_team == "모두":
-            # 기준 팀이 참여한 모든 경기
             team_data = df[(df["홈 팀"] == base_team) | (df["원정 팀"] == base_team)]
             st.subheader(f"📊 {base_team}의 전체 전적")
         else:
-            # 양 팀 간의 전적
             team_data = df[
                 ((df["홈 팀"] == base_team) & (df["원정 팀"] == opponent_team)) |
                 ((df["홈 팀"] == opponent_team) & (df["원정 팀"] == base_team))
@@ -126,6 +124,52 @@ elif menu == "팀별 분석":
             st.subheader(f"📊 {base_team} vs {opponent_team} 전적")
 
         st.dataframe(team_data.reset_index(drop=True))
+
+        # 전적 요약 통계 계산
+        wins, draws, losses = 0, 0, 0
+        goals_for, goals_against = 0, 0
+        points = 0
+
+        for _, row in team_data.iterrows():
+            home, away = row["홈 팀"], row["원정 팀"]
+            home_score, away_score = row["홈 팀 득점"], row["원정 팀 득점"]
+            result = row["경기 결과"]
+
+            # 기준 팀이 홈일 때
+            if base_team == home:
+                goals_for += home_score
+                goals_against += away_score
+                if result == "H":
+                    wins += 1
+                    points += 3
+                elif result == "D" or result == "무승부":  # 혹시 '무승부' 텍스트도 있으면 같이 처리
+                    draws += 1
+                    points += 1
+                else:
+                    losses += 1
+            # 기준 팀이 원정일 때
+            else:
+                goals_for += away_score
+                goals_against += home_score
+                if result == "A":
+                    wins += 1
+                    points += 3
+                elif result == "D" or result == "무승부":
+                    draws += 1
+                    points += 1
+                else:
+                    losses += 1
+
+        st.markdown("---")
+        st.subheader("전적 요약")
+        st.write(f"총 경기 수: {len(team_data)}")
+        st.write(f"승리: {wins}회")
+        st.write(f"무승부: {draws}회")
+        st.write(f"패배: {losses}회")
+        st.write(f"득점: {goals_for}점")
+        st.write(f"실점: {goals_against}점")
+        st.write(f"승점: {points}점")
+
 
 
 
