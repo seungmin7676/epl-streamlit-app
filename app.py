@@ -281,7 +281,7 @@ if menu == "승부 예측":
         match_history[[
             "날짜", "홈 팀", "원정 팀", 
             "홈 승 배당률", "무승부 배당률", "원정 승 배당률"
-        ]].reset_index(drop=True),
+        ]].style.hide(axis="index"),
         use_container_width=True
     )
 
