@@ -412,7 +412,7 @@ if menu == "승부 예측 게임":
                         "draw": "무승부",
                         "away": f"{away_team} 승"
                     }
-                    st.warning(f"❌ 아쉽습니다. 경기 결과는 {result_str[result]} 입니다.")
+                    st.warning(f"아쉽습니다. 경기 결과는 {result_str[result]} 입니다.")
 
                 # 승자 결정
                 if result == "home":
