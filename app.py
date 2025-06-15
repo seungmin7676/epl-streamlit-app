@@ -317,9 +317,6 @@ if menu == "승부 예측":
 
 
 if menu == "승부 예측 게임":
-    import random
-    import numpy as np
-
     def calculate_win_probabilities(df, team1, team2):
         row = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)].iloc[0]
         home_odds = row["홈 승 배당률"]
@@ -328,14 +325,13 @@ if menu == "승부 예측 게임":
         p_away = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
         return p_home, p_away, home_odds, away_odds
 
+    # 초기화
     if "game_money" not in st.session_state:
         st.session_state.game_money = 10000
-
     if "round_matches" not in st.session_state:
         top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
         teams = top16["index"].tolist()
         random.shuffle(teams)
-
         matches = []
         for i in range(0, len(teams), 2):
             a, b = teams[i], teams[i + 1]
@@ -390,7 +386,6 @@ if menu == "승부 예측 게임":
             bet_amount = st.number_input("배팅 금액 입력", min_value=1, max_value=st.session_state.game_money, step=100)
             selected_team = st.radio("이길 팀 선택", options=[home_team, away_team])
             submitted = st.form_submit_button("확인")
-
             if submitted:
                 if bet_amount <= 0 or bet_amount > st.session_state.game_money:
                     st.warning("배팅 금액을 올바르게 입력하세요.")
@@ -400,7 +395,7 @@ if menu == "승부 예측 게임":
                     winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
                     st.session_state.winner = winner
                     st.session_state.show_result = True
-                    st.experimental_rerun()  # 결과 바로 보여주려고 새로고침
+                    st.experimental_rerun()
 
     else:
         winner = st.session_state.winner
@@ -417,6 +412,9 @@ if menu == "승부 예측 게임":
             st.session_state.game_money -= st.session_state.bet_amount
 
         if st.button("다음 경기"):
+            # winners 초기화 또는 append 체크
+            if "winners" not in st.session_state or not isinstance(st.session_state.winners, list):
+                st.session_state.winners = []
             st.session_state.winners.append(winner)
             st.session_state.match_idx += 1
             st.session_state.show_result = False
