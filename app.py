@@ -409,6 +409,7 @@ if menu == "승부 예측 게임":
                     st.session_state.winner = winner
                     st.session_state.show_result = True
                     st.session_state.result_handled = False  # 결과 아직 처리 안 됨
+                    # rerun을 바로 return과 함께 사용하여 오류 방지
                     st.experimental_rerun()
     else:
         winner = st.session_state.winner
@@ -422,8 +423,6 @@ if menu == "승부 예측 게임":
                 st.session_state.game_money += win_money
             else:
                 st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
-                st.session_state.game_money -= st.session_state.bet_amount
-            st.session_state.result_handled = True  # 처리 완료
         if st.button("다음 경기"):
             st.session_state.winners.append(winner)
             st.session_state.match_idx += 1
@@ -432,8 +431,8 @@ if menu == "승부 예측 게임":
             st.session_state.bet_amount = 0
             st.session_state.selected_team = None
             st.experimental_rerun()
+            st.experimental_rerun()
             st.session_state.selected_team = None
-
 
 
 
