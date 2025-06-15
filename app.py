@@ -319,7 +319,6 @@ if menu == "승부 예측":
 if menu == "승부 예측 게임":
     st.header("승부 예측 게임 - 16강 토너먼트")
 
-    # 상위 16개 팀 추출 (순위 기준)
     top_16_teams = df_standings.reset_index().rename(columns={"index": "구단"}).head(16)
     top_16_list = top_16_teams["구단"].tolist()
 
@@ -332,17 +331,17 @@ if menu == "승부 예측 게임":
         total = p_home + p_away
         return p_home / total, p_away / total
 
-    def get_match_odds(home_team, away_team):
-        # home_team 홈 경기 중 away_team과 경기 배당률 추출
+    def get_match_info(home_team, away_team):
+        # 홈팀 vs 원정팀 경기 데이터 필터링
         matches = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
         if matches.empty:
-            return None, None
-        # 평균 배당률 사용 (복수 경기시)
+            return None, None, None
+        # 평균 배당률과 가장 많이 쓰인 구장 (대표 구장) 선택
         home_odds = matches["홈 승 배당률"].astype(float).mean()
         away_odds = matches["원정 승 배당률"].astype(float).mean()
-        return home_odds, away_odds
+        stadium = matches["구장"].mode()[0]  # 최빈값(가장 많이 나온 구장)
+        return home_odds, away_odds, stadium
 
-    # 토너먼트 진행 함수 (16강 -> 8강 -> 4강 -> 결승)
     def run_tournament(teams):
         round_names = ["16강", "8강", "4강", "결승"]
         current_teams = teams
@@ -355,15 +354,19 @@ if menu == "승부 예측 게임":
                 home_team = current_teams[i]
                 away_team = current_teams[i+1]
 
-                home_odds, away_odds = get_match_odds(home_team, away_team)
-                home_prob, away_prob = calculate_win_prob(home_odds, away_odds)
+                home_odds, away_odds, stadium = get_match_info(home_team, away_team)
+                if home_odds is None:
+                    st.write(f"{home_team} vs {away_team} — 경기 데이터 없음")
+                    winner = home_team  # 기본 처리
+                else:
+                    home_prob, away_prob = calculate_win_prob(home_odds, away_odds)
 
-                st.write(f"{home_team} vs {away_team}")
-                st.write(f"- {home_team} 승리 확률: {home_prob*100:.2f}%")
-                st.write(f"- {away_team} 승리 확률: {away_prob*100:.2f}%")
+                    st.write(f"{home_team} vs {away_team} (장소: {stadium})")
+                    st.write(f"- {home_team} 승리 확률: {home_prob*100:.2f}%")
+                    st.write(f"- {away_team} 승리 확률: {away_prob*100:.2f}%")
 
-                # 실제 승자 선택 (확률 기반 무작위)
-                winner = np.random.choice([home_team, away_team], p=[home_prob, away_prob])
+                    winner = np.random.choice([home_team, away_team], p=[home_prob, away_prob])
+
                 st.write(f"➡️ 승자: **{winner}**")
                 st.markdown("---")
                 next_round_teams.append(winner)
@@ -373,3 +376,4 @@ if menu == "승부 예측 게임":
         st.success(f"🏆 최종 우승 팀: **{current_teams[0]}**")
 
     run_tournament(top_16_list)
+
