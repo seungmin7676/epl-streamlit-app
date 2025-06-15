@@ -362,6 +362,14 @@ if menu == "승부 예측 게임":
         winners = st.session_state.winners
         if len(winners) == 1:
             st.subheader(f"🏅 최종 우승팀: {winners[0]} 🎉 축하합니다!")
+            if st.button("🔁 다시 시작하기"):
+                for key in [
+                    "game_money", "round_matches", "match_idx", "winners",
+                    "show_result", "bet_amount", "selected_team", "result_handled", "winner"
+                ]:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                st.experimental_rerun()
             st.stop()
         random.shuffle(winners)
         next_matches = []
