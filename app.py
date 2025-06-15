@@ -14,9 +14,9 @@ if os.path.exists(font_path):
     plt.rcParams['axes.unicode_minus'] = False
 
 season_files = {
-    "22-23 시즌": "epl_22_23.csv",
-    "23-24 시즌": "epl_23_24.csv",
-    "24-25 시즌": "epl_24_25.csv",
+    "2022-2023 시즌": "epl_22_23.csv",
+    "2023-2024 시즌": "epl_23_24.csv",
+    "2024-2025 시즌": "epl_24_25.csv",
 }
 
 # 사이드바에서 시즌 선택하기
@@ -24,10 +24,6 @@ selected_season = st.sidebar.selectbox("시즌 선택", list(season_files.keys()
 
 # 선택된 시즌에 맞는 CSV 파일 불러오기
 df = pd.read_csv(season_files[selected_season])
-
-# 데이터 확인용 출력
-st.write(f"선택한 시즌: {selected_season}")
-st.dataframe(df.head())
 
 
 # 리그 순위 계산 함수
@@ -76,7 +72,7 @@ def calculate_standings(df):
 df_standings = calculate_standings(df)
 
 # main
-st.title("2024-2025 시즌 EPL 분석 프로그램")
+st.title(f"{selected_season} EPL 분석 프로그램")
 
 # 메뉴 선택
 menu = st.selectbox("", ["전체 분석", "팀별 분석", "승부 예측", "승부 예측 게임"])
