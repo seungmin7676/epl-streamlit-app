@@ -77,8 +77,8 @@ menu = st.selectbox("", ["전체 분석", "팀별 분석", "승부 예측", "승
 if menu == "전체 분석":
     st.header("EPL 전체 분석")
 
-    # 구단명 컬럼 추가, 순위 열 추가, 인덱스를 '순위'로 설정
-    df_ranked = df_standings.reset_index().rename(columns={"index": "구단"})
+    # 순위 컬럼 추가 및 순위 인덱스 설정
+    df_ranked = df_standings.copy()
     df_ranked.insert(0, "순위", range(1, len(df_ranked) + 1))
     df_ranked = df_ranked.set_index("순위")
 
@@ -88,22 +88,23 @@ if menu == "전체 분석":
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["득점"])
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop) 
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)
         st.pyplot(fig)
 
     if st.button("승점 그래프 보기"):
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["승점"], color="orange")
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop) 
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)
         st.pyplot(fig)
 
     if st.button("승리 횟수 그래프 보기"):
         fig, ax = plt.subplots()
         ax.bar(df_ranked["구단"], df_ranked["승"], color="green")
         ax.set_xticks(range(len(df_ranked["구단"])))
-        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop) 
+        ax.set_xticklabels(df_ranked["구단"], rotation=90, fontproperties=font_prop)
         st.pyplot(fig)
+
 
 
 
