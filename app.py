@@ -326,27 +326,44 @@ if menu == "승부 예측 게임":
     st.markdown("상위 16개 팀: " + ", ".join(team_names))
 
     def simulate_match(team1, team2):
+        # 홈 구장 무작위 선택
+        stadium_owner = np.random.choice([team1, team2])
+        
+        # 확률 계산
         probs1, probs2 = calculate_win_probabilities(df, team1, team2)
 
-        # 홈/원정 승률 평균으로 각 팀의 승리 확률 계산
-        win_prob_1 = (probs1["home_win"] + probs2["away_win"]) / 2
-        win_prob_2 = (probs1["away_win"] + probs2["home_win"]) / 2
+        if stadium_owner == team1:
+            win_prob_1 = probs1["home_win"]
+            win_prob_2 = probs2["away_win"]
+        else:
+            win_prob_1 = probs1["away_win"]
+            win_prob_2 = probs2["home_win"]
 
-        # 정규화 (합이 1이 되도록)
+        # 정규화
         total = win_prob_1 + win_prob_2
         win_prob_1 /= total
         win_prob_2 /= total
 
-        # 확률 기반으로 승자 선택
-        return np.random.choice([team1, team2], p=[win_prob_1, win_prob_2])
+        winner = np.random.choice([team1, team2], p=[win_prob_1, win_prob_2])
+
+        return winner, stadium_owner, win_prob_1, win_prob_2
 
     def simulate_round(teams):
         winners = []
         st.subheader(f"{len(teams)}강 경기 결과")
         for i in range(0, len(teams), 2):
             team1, team2 = teams[i], teams[i+1]
-            winner = simulate_match(team1, team2)
-            st.write(f"**{team1}** vs **{team2}** ➜ 🎉 **{winner} 승리**")
+            winner, stadium, p1, p2 = simulate_match(team1, team2)
+
+            st.markdown(f"""
+            <div style='padding:8px; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;'>
+            <strong>{team1}</strong> vs <strong>{team2}</strong>  
+            <br>📍 구장: <strong>{stadium}</strong> 홈  
+            <br>🔢 승리 확률 – {team1}: {p1:.2%}, {team2}: {p2:.2%}  
+            <br>🎉 결과: <strong style='color:green;'>{winner} 승리</strong>
+            </div>
+            """, unsafe_allow_html=True)
+
             winners.append(winner)
         return winners
 
@@ -360,4 +377,3 @@ if menu == "승부 예측 게임":
     st.markdown("---")
     st.subheader("🏆 최종 우승 팀")
     st.markdown(f"<h2 style='text-align:center; color:gold;'>✨ {champion} ✨</h2>", unsafe_allow_html=True)
-
