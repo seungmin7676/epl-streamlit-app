@@ -368,7 +368,7 @@ if menu == "승부 예측 게임":
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
-        st.experimental_rerun()
+        
 
     home_team, away_team = matches[idx]
     p_home, p_away, home_odds, away_odds = calculate_win_probabilities(df, home_team, away_team)
@@ -395,7 +395,7 @@ if menu == "승부 예측 게임":
                     winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
                     st.session_state.winner = winner
                     st.session_state.show_result = True
-                    st.experimental_rerun()
+                    
 
     else:
         winner = st.session_state.winner
