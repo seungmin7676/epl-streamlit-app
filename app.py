@@ -347,50 +347,65 @@ if menu == "승부 예측 게임":
 
     # 경기 시뮬레이션
     def simulate_match(team1, team2):
+        # 홈 구장 무작위 선택
         stadium_owner = np.random.choice([team1, team2])
-        probs = calculate_win_probabilities(df, team1, team2)
 
+        # 해당 매치 데이터에서 배당률 찾기
         if stadium_owner == team1:
-            win_prob_1 = probs["home_win"]
-            win_prob_2 = probs["away_win"]
-            odds_1 = probs["home_odds"]
-            odds_2 = probs["away_odds"]
+            match = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)]
+            home_team = team1
+            away_team = team2
         else:
-            win_prob_1 = probs["away_win"]
-            win_prob_2 = probs["home_win"]
-            odds_1 = probs["away_odds"]
-            odds_2 = probs["home_odds"]
+            match = df[(df["홈 팀"] == team2) & (df["원정 팀"] == team1)]
+            home_team = team2
+            away_team = team1
 
-        # 정규화
-        total = win_prob_1 + win_prob_2
-        win_prob_1 /= total
-        win_prob_2 /= total
+        # 실제 배당률 추출
+        home_odds = match["홈 승 배당률"].values[0]
+        away_odds = match["원정 승 배당률"].values[0]
 
-        winner = np.random.choice([team1, team2], p=[win_prob_1, win_prob_2])
+        # 무승부 없는 토너먼트 확률 계산
+        prob_home = 1 / home_odds
+        prob_away = 1 / away_odds
+        total = prob_home + prob_away
+        prob_home /= total
+        prob_away /= total
 
-        return winner, stadium_owner, win_prob_1, win_prob_2, odds_1, odds_2
+        # 승자 결정
+        winner = np.random.choice([home_team, away_team], p=[prob_home, prob_away])
+
+        # 출력용: team1, team2 순서에 맞춘 확률 반환
+        if stadium_owner == team1:
+            win_prob_1 = prob_home
+            win_prob_2 = prob_away
+        else:
+            win_prob_1 = prob_away
+            win_prob_2 = prob_home
+
+        return winner, stadium_owner, win_prob_1, win_prob_2, home_odds, away_odds
+
 
     # 라운드 진행
     def simulate_round(teams):
-        random.shuffle(teams)
         winners = []
         st.subheader(f"{len(teams)}강 경기 결과")
         for i in range(0, len(teams), 2):
             team1, team2 = teams[i], teams[i+1]
-            winner, stadium, p1, p2, o1, o2 = simulate_match(team1, team2)
-
+            winner, stadium, p1, p2, odds1, odds2 = simulate_match(team1, team2)
+    
             st.markdown(f"""
             <div style='padding:8px; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;'>
             <strong>{team1}</strong> vs <strong>{team2}</strong>  
             <br>📍 구장: <strong>{stadium}</strong> 홈  
-            <br>💸 배당률 – {team1}: {o1:.2f}, {team2}: {o2:.2f}  
+            <br>💰 배당률 – {team1}: {odds1 if stadium == team1 else odds2}, {team2}: {odds2 if stadium == team1 else odds1}  
             <br>🔢 승리 확률 – {team1}: {p1:.2%}, {team2}: {p2:.2%}  
             <br>🎉 결과: <strong style='color:green;'>{winner} 승리</strong>
             </div>
             """, unsafe_allow_html=True)
-
+    
             winners.append(winner)
         return winners
+
 
     # 토너먼트 진행
     round16 = team_names
