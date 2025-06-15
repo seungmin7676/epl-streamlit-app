@@ -325,7 +325,7 @@ if menu == "승부 예측 게임":
         p_away = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
         return p_home, p_away, home_odds, away_odds
 
-    # 초기화
+    # 세션 상태 초기화
     if "game_money" not in st.session_state:
         st.session_state.game_money = 10000
     if "round_matches" not in st.session_state:
@@ -335,10 +335,7 @@ if menu == "승부 예측 게임":
         matches = []
         for i in range(0, len(teams), 2):
             a, b = teams[i], teams[i + 1]
-            if random.random() < 0.5:
-                matches.append((a, b))
-            else:
-                matches.append((b, a))
+            matches.append((a, b) if random.random() < 0.5 else (b, a))
         st.session_state.round_matches = matches
         st.session_state.match_idx = 0
         st.session_state.winners = []
@@ -346,13 +343,10 @@ if menu == "승부 예측 게임":
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
 
-    # 새로 추가: 클릭 플래그 초기화
-    if "clicked_next" not in st.session_state:
-        st.session_state.clicked_next = False
-
     matches = st.session_state.round_matches
     idx = st.session_state.match_idx
 
+    # 만약 라운드 종료 후 다음 라운드로 넘어가야 할 때
     if idx >= len(matches):
         winners = st.session_state.winners
         if len(winners) == 1:
@@ -362,21 +356,23 @@ if menu == "승부 예측 게임":
         next_matches = []
         for i in range(0, len(winners), 2):
             a, b = winners[i], winners[i + 1]
-            if random.random() < 0.5:
-                next_matches.append((a, b))
-            else:
-                next_matches.append((b, a))
+            next_matches.append((a, b) if random.random() < 0.5 else (b, a))
         st.session_state.round_matches = next_matches
         st.session_state.match_idx = 0
         st.session_state.winners = []
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
+        matches = st.session_state.round_matches
+        idx = 0  # 초기화 후 idx도 갱신
 
+    # 경기 정보 표시
     home_team, away_team = matches[idx]
     p_home, p_away, home_odds, away_odds = calculate_win_probabilities(df, home_team, away_team)
 
-    st.header("🏆 승부 예측 토너먼트 (Top 16)")
+    round_name = {16: "16강", 8: "8강", 4: "4강", 2: "결승"}
+    current_round = round_name.get(len(matches) * 2, "토너먼트")
+    st.header(f"🏆 승부 예측 토너먼트 ({current_round})")
     st.markdown(f"💰 현재 게임 머니: {st.session_state.game_money}원")
     st.subheader(f"경기 {idx + 1} / {len(matches)}")
     st.markdown(f"📍 경기장: **{home_team} 홈구장**")
@@ -398,43 +394,25 @@ if menu == "승부 예측 게임":
                     winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
                     st.session_state.winner = winner
                     st.session_state.show_result = True
+
     else:
         winner = st.session_state.winner
         st.markdown(f"🎉 경기 결과: **{winner} 승리!**")
         if winner == st.session_state.selected_team:
-            if winner == home_team:
-                win_money = int(st.session_state.bet_amount * home_odds)
-            else:
-                win_money = int(st.session_state.bet_amount * away_odds)
+            win_money = int(st.session_state.bet_amount * (home_odds if winner == home_team else away_odds))
             st.markdown(f"✅ 축하합니다! 배팅 성공! +{win_money}원 획득")
-            if not st.session_state.get("money_updated", False):
-                st.session_state.game_money += win_money
-                st.session_state.money_updated = True
+            st.session_state.game_money += win_money
         else:
             st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
-            if not st.session_state.get("money_updated", False):
-                st.session_state.game_money -= st.session_state.bet_amount
-                st.session_state.money_updated = True
+            st.session_state.game_money -= st.session_state.bet_amount
 
         if st.button("다음 경기"):
-            if not st.session_state.clicked_next:
-                # 다음 경기 진행 상태 업데이트
-                st.session_state.winners.append(winner)
-                st.session_state.match_idx += 1
-                st.session_state.show_result = False
-                st.session_state.bet_amount = 0
-                st.session_state.selected_team = None
-                st.session_state.money_updated = False
-                st.session_state.clicked_next = True  # 클릭 플래그 켬
+            st.session_state.winners.append(winner)
+            st.session_state.match_idx += 1
+            st.session_state.show_result = False
+            st.session_state.bet_amount = 0
+            st.session_state.selected_team = None
 
-    # 클릭 플래그가 켜져 있으면 바로 끄면서 강제 리렌더링 유도
-    if st.session_state.clicked_next:
-        st.session_state.clicked_next = False
-        st.session_state.match_idx = st.session_state.match_idx
-
-        # 만약 st.experimental_rerun()이 문제된다면, 아래처럼 그냥 상태 변화만 줘도 됨
-        # (이 경우 두 번 누르는 현상은 조금 줄어듦)
-        # st.session_state.match_idx = st.session_state.match_idx
 
 
             
