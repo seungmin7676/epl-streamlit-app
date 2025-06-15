@@ -325,14 +325,22 @@ if menu == "승부 예측":
     \text{승리 확률} = \frac{1/\text{배당률}}{1/\text{홈 승 배당률} + 1/\text{무승부 배당률} + 1/\text{원정 승 배당률}}
     """)
 
-
+def normalize_team_name(name):
+    return str(name).strip()
 
 
 if menu == "승부 예측 게임":
     import random
 
     def calculate_win_probabilities(df, team1, team2):
-        row = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)].iloc[0]
+        # 팀명 정규화
+        team1 = normalize_team_name(team1)
+        team2 = normalize_team_name(team2)
+        filtered = df[(df["홈 팀"].apply(normalize_team_name) == team1) & (df["원정 팀"].apply(normalize_team_name) == team2)]
+        if filtered.empty:
+            st.error(f"경기 데이터 없음: {team1} (홈) vs {team2} (원정)")
+            return 0.5, 0.5, 2.0, 2.0  # 기본값 반환
+        row = filtered.iloc[0]
         home_odds = row["홈 승 배당률"]
         away_odds = row["원정 승 배당률"]
         p_home = (1 / home_odds) / ((1 / home_odds) + (1 / away_odds))
@@ -344,7 +352,8 @@ if menu == "승부 예측 게임":
         st.session_state.game_money = 10000
     if "round_matches" not in st.session_state:
         top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
-        teams = top16["index"].tolist()
+        # 16강 팀명 정규화
+        teams = [normalize_team_name(t) for t in top16["index"].tolist()]
         random.shuffle(teams)
         matches = []
         for i in range(0, len(teams), 2):
@@ -360,6 +369,7 @@ if menu == "승부 예측 게임":
 
     matches = st.session_state.round_matches
     idx = st.session_state.match_idx
+
 
     # 라운드 이름 설정
     round_name = {
