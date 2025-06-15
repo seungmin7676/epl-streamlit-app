@@ -173,7 +173,7 @@ if menu == "팀별 분석":
             ((df["홈 팀"] == left_team) & (df["원정 팀"] == right_team)) |
             ((df["홈 팀"] == right_team) & (df["원정 팀"] == left_team))
         ]
-        st.subheader(f"🤝 {left_team} vs {right_team} 상대 전적 ({len(team_data)}경기)")
+        st.subheader(f"{left_team} vs {right_team} 상대 전적 ({len(team_data)}경기)")
 
     # 날짜 내림차순 정렬
     team_data_sorted = team_data.sort_values(by=date_col, ascending=False)
