@@ -345,7 +345,10 @@ if menu == "승부 예측 게임":
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
-        st.session_state.bet_processed = False  # ★ 플래그 추가
+
+    # 새로 추가: 클릭 플래그 초기화
+    if "clicked_next" not in st.session_state:
+        st.session_state.clicked_next = False
 
     matches = st.session_state.round_matches
     idx = st.session_state.match_idx
@@ -369,7 +372,6 @@ if menu == "승부 예측 게임":
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
-        st.session_state.bet_processed = False
 
     home_team, away_team = matches[idx]
     p_home, p_away, home_odds, away_odds = calculate_win_probabilities(df, home_team, away_team)
@@ -387,7 +389,7 @@ if menu == "승부 예측 게임":
             bet_amount = st.number_input("배팅 금액 입력", min_value=1, max_value=st.session_state.game_money, step=100)
             selected_team = st.radio("이길 팀 선택", options=[home_team, away_team])
             submitted = st.form_submit_button("확인")
-            if submitted and not st.session_state.bet_processed:
+            if submitted:
                 if bet_amount <= 0 or bet_amount > st.session_state.game_money:
                     st.warning("배팅 금액을 올바르게 입력하세요.")
                 else:
@@ -396,34 +398,44 @@ if menu == "승부 예측 게임":
                     winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
                     st.session_state.winner = winner
                     st.session_state.show_result = True
-                    st.session_state.bet_processed = True  # ★ 중복 방지
-
     else:
         winner = st.session_state.winner
         st.markdown(f"🎉 경기 결과: **{winner} 승리!**")
-        if not st.session_state.get("money_updated", False):
-            if winner == st.session_state.selected_team:
-                if winner == home_team:
-                    win_money = int(st.session_state.bet_amount * home_odds)
-                else:
-                    win_money = int(st.session_state.bet_amount * away_odds)
-                st.markdown(f"✅ 축하합니다! 배팅 성공! +{win_money}원 획득")
-                st.session_state.game_money += win_money
+        if winner == st.session_state.selected_team:
+            if winner == home_team:
+                win_money = int(st.session_state.bet_amount * home_odds)
             else:
-                st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
+                win_money = int(st.session_state.bet_amount * away_odds)
+            st.markdown(f"✅ 축하합니다! 배팅 성공! +{win_money}원 획득")
+            if not st.session_state.get("money_updated", False):
+                st.session_state.game_money += win_money
+                st.session_state.money_updated = True
+        else:
+            st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
+            if not st.session_state.get("money_updated", False):
                 st.session_state.game_money -= st.session_state.bet_amount
-            st.session_state.money_updated = True  # ★ 게임 머니 한 번만 업데이트
+                st.session_state.money_updated = True
 
         if st.button("다음 경기"):
-            if "winners" not in st.session_state or not isinstance(st.session_state.winners, list):
-                st.session_state.winners = []
-            st.session_state.winners.append(winner)
-            st.session_state.match_idx += 1
-            st.session_state.show_result = False
-            st.session_state.bet_amount = 0
-            st.session_state.selected_team = None
-            st.session_state.bet_processed = False
-            st.session_state.money_updated = False
+            if not st.session_state.clicked_next:
+                # 다음 경기 진행 상태 업데이트
+                st.session_state.winners.append(winner)
+                st.session_state.match_idx += 1
+                st.session_state.show_result = False
+                st.session_state.bet_amount = 0
+                st.session_state.selected_team = None
+                st.session_state.money_updated = False
+                st.session_state.clicked_next = True  # 클릭 플래그 켬
+
+    # 클릭 플래그가 켜져 있으면 바로 끄면서 강제 리렌더링 유도
+    if st.session_state.clicked_next:
+        st.session_state.clicked_next = False
+        st.experimental_rerun()  # 안 되면 아래 코드 참고
+
+        # 만약 st.experimental_rerun()이 문제된다면, 아래처럼 그냥 상태 변화만 줘도 됨
+        # (이 경우 두 번 누르는 현상은 조금 줄어듦)
+        # st.session_state.match_idx = st.session_state.match_idx
+
 
             
 
