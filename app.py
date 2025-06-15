@@ -14,8 +14,8 @@ if os.path.exists(font_path):
     plt.rcParams['axes.unicode_minus'] = False
 
 season_files = {
-    "2020-2021 시즌": "epl_22_23.csv",
-    "2021-2022 시즌": "epl_22_23.csv",
+    "2020-2021 시즌": "epl_20_21.csv",
+    "2021-2022 시즌": "epl_21_22.csv",
     "2022-2023 시즌": "epl_22_23.csv",
     "2023-2024 시즌": "epl_23_24.csv",
     "2024-2025 시즌": "epl_24_25.csv",
