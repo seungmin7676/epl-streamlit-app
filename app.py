@@ -419,3 +419,4 @@ if menu == "승부 예측 게임":
     st.markdown(f"💰 최종 게임 머니: {money} 원")
 
 
+
