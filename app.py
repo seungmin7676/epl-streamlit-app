@@ -430,7 +430,7 @@ if menu == "승부 예측 게임":
     # 클릭 플래그가 켜져 있으면 바로 끄면서 강제 리렌더링 유도
     if st.session_state.clicked_next:
         st.session_state.clicked_next = False
-        st.experimental_rerun()  # 안 되면 아래 코드 참고
+        st.session_state.match_idx = st.session_state.match_idx
 
         # 만약 st.experimental_rerun()이 문제된다면, 아래처럼 그냥 상태 변화만 줘도 됨
         # (이 경우 두 번 누르는 현상은 조금 줄어듦)
