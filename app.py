@@ -6,13 +6,14 @@ import random
 import matplotlib.font_manager as fm
 import os
 
-# 폰트 경로 및 설정
-font_path = "fonts/NanumGothic.ttf" 
+# 폰트 설정
+font_path = "fonts/NanumGothic.ttf"
 if os.path.exists(font_path):
     font_prop = fm.FontProperties(fname=font_path)
-    plt.rcParams['font.family'] = font_prop.get_name() 
+    plt.rcParams['font.family'] = font_prop.get_name()
     plt.rcParams['axes.unicode_minus'] = False
 
+# 시즌별 CSV 파일 목록
 season_files = {
     "2020-2021 시즌": "epl_20_21.csv",
     "2021-2022 시즌": "epl_21_22.csv",
@@ -21,12 +22,13 @@ season_files = {
     "2024-2025 시즌": "epl_24_25.csv",
 }
 
-# 사이드바에서 시즌 선택하기
+# 시즌 선택 및 상태 초기화
 selected_season = st.sidebar.selectbox("시즌 선택", list(season_files.keys()))
+if "active_season" not in st.session_state or st.session_state.active_season != selected_season:
+    st.session_state.clear()
+    st.session_state.active_season = selected_season
 
-# 선택된 시즌에 맞는 CSV 파일 불러오기
 df = pd.read_csv(season_files[selected_season])
-
 
 # 리그 순위 계산 함수
 def calculate_standings(df):
@@ -62,19 +64,14 @@ def calculate_standings(df):
 
     standings_df = pd.DataFrame.from_dict(standings, orient="index")
     standings_df["득실차"] = standings_df["득점"] - standings_df["실점"]
-
     standings_df.index.name = "구단"
-    standings_df.reset_index(inplace=True)  # 팀명을 컬럼으로 명확히
+    standings_df.reset_index(inplace=True)
     standings_df = standings_df[["구단", "경기", "승", "무", "패", "득점", "실점", "득실차", "승점"]]
     return standings_df.sort_values(by=["승점", "득실차", "득점"], ascending=False)
 
-
 df_standings = calculate_standings(df)
 
-# main
 st.title(f"{selected_season} EPL 분석 프로그램")
-
-# 메뉴 선택
 menu = st.selectbox("", ["전체 분석", "팀별 분석", "승부 예측", "승부 예측 게임"])
 
 if menu == "전체 분석":
@@ -326,28 +323,32 @@ if menu == "승부 예측":
 
 
 
+# 승부 예측 게임
 if menu == "승부 예측 게임":
-    import random
 
     def calculate_win_probabilities(df, team1, team2):
-        row = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)].iloc[0]
-        home_odds = row["홈 승 배당률"]
-        away_odds = row["원정 승 배당률"]
-        p_home = (1 / home_odds) / ((1 / home_odds) + (1 / away_odds))
-        p_away = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
-        return p_home, p_away, home_odds, away_odds
+        if not isinstance(team1, str) or not isinstance(team2, str):
+            return 0.5, 0.5, 2.0, 2.0
+        match = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)]
+        if match.empty:
+            return 0.5, 0.5, 2.0, 2.0
+        try:
+            row = match.iloc[0]
+            home_odds = row["홈 승 배당률"]
+            away_odds = row["원정 승 배당률"]
+            p_home = (1 / home_odds) / ((1 / home_odds) + (1 / away_odds))
+            p_away = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
+            return p_home, p_away, home_odds, away_odds
+        except:
+            return 0.5, 0.5, 2.0, 2.0
 
-    # 초기화
     if "game_money" not in st.session_state:
         st.session_state.game_money = 10000
     if "round_matches" not in st.session_state:
-        top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
-        teams = top16["index"].tolist()
+        top16 = df_standings.head(16)
+        teams = top16["구단"].tolist()
         random.shuffle(teams)
-        matches = []
-        for i in range(0, len(teams), 2):
-            a, b = teams[i], teams[i + 1]
-            matches.append((a, b) if random.random() < 0.5 else (b, a))
+        matches = [(teams[i], teams[i+1]) for i in range(0, len(teams), 2)]
         st.session_state.round_matches = matches
         st.session_state.match_idx = 0
         st.session_state.winners = []
@@ -359,25 +360,15 @@ if menu == "승부 예측 게임":
     matches = st.session_state.round_matches
     idx = st.session_state.match_idx
 
-    # 라운드 이름 설정
-    round_name = {
-        16: "16강",
-        8: "8강",
-        4: "4강",
-        2: "결승"
-    }.get(len(matches), f"{len(matches)}강")
+    round_name = {16: "16강", 8: "8강", 4: "4강", 2: "결승"}.get(len(matches), f"{len(matches)}강")
 
-    # 라운드 종료 후 다음 라운드 생성
     if idx >= len(matches):
         winners = st.session_state.winners
         if len(winners) == 1:
             st.subheader(f"🏅 최종 우승팀: {winners[0]} 🎉 축하합니다!")
             st.stop()
         random.shuffle(winners)
-        next_matches = []
-        for i in range(0, len(winners), 2):
-            a, b = winners[i], winners[i + 1]
-            next_matches.append((a, b) if random.random() < 0.5 else (b, a))
+        next_matches = [(winners[i], winners[i+1]) for i in range(0, len(winners), 2)]
         st.session_state.round_matches = next_matches
         st.session_state.match_idx = 0
         st.session_state.winners = []
@@ -413,12 +404,11 @@ if menu == "승부 예측 게임":
                     winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
                     st.session_state.winner = winner
                     st.session_state.show_result = True
-                    st.session_state.result_handled = False  # 결과 아직 처리 안 됨
+                    st.session_state.result_handled = False
     else:
         winner = st.session_state.winner
         st.markdown(f"🎉 경기 결과: **{winner} 승리!**")
 
-        # ✅ 돈 증감은 한 번만 처리
         if not st.session_state.result_handled:
             if winner == st.session_state.selected_team:
                 win_money = int(st.session_state.bet_amount * (home_odds if winner == home_team else away_odds))
@@ -427,7 +417,7 @@ if menu == "승부 예측 게임":
             else:
                 st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
                 st.session_state.game_money -= st.session_state.bet_amount
-            st.session_state.result_handled = True  # 처리 완료
+            st.session_state.result_handled = True
 
         if st.button("다음 경기"):
             st.session_state.winners.append(winner)
