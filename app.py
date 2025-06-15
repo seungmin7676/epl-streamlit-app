@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-
+import random
 import matplotlib.font_manager as fm
 import os
 
@@ -319,9 +319,11 @@ if menu == "승부 예측":
 if menu == "승부 예측 게임":
     st.header("🏆 승부 예측 토너먼트 (Top 16)")
 
-    # 상위 16개 팀 추출
     top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
     team_names = top16["index"].tolist()
+
+    # 팀 리스트 무작위 섞기
+    random.shuffle(team_names)
 
     st.markdown("상위 16개 팀: " + ", ".join(team_names))
 
