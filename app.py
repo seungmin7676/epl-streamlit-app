@@ -325,21 +325,33 @@ if menu == "승부 예측 게임":
 
     st.markdown("상위 16개 팀: " + ", ".join(team_names))
 
+    def calculate_win_prob_from_odds(df, home_team, away_team):
+        matches = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
+
+        home_odds = matches["홈 승 배당률"].astype(float).mean()
+        away_odds = matches["원정 승 배당률"].astype(float).mean()
+
+        p_home = 1 / home_odds
+        p_away = 1 / away_odds
+        total = p_home + p_away
+
+        return {
+            "home_win": p_home / total,
+            "away_win": p_away / total,
+        }
+
     def simulate_match(team1, team2):
-        # 홈 구장 무작위 선택
         stadium_owner = np.random.choice([team1, team2])
-        
-        # 확률 계산
-        probs1, probs2 = calculate_win_probabilities(df, team1, team2)
 
         if stadium_owner == team1:
-            win_prob_1 = probs1["home_win"]
-            win_prob_2 = probs2["away_win"]
+            probs = calculate_win_prob_from_odds(df, team1, team2)
+            win_prob_1 = probs["home_win"]
+            win_prob_2 = probs["away_win"]
         else:
-            win_prob_1 = probs1["away_win"]
-            win_prob_2 = probs2["home_win"]
+            probs = calculate_win_prob_from_odds(df, team2, team1)
+            win_prob_1 = probs["away_win"]
+            win_prob_2 = probs["home_win"]
 
-        # 정규화
         total = win_prob_1 + win_prob_2
         win_prob_1 /= total
         win_prob_2 /= total
@@ -347,6 +359,7 @@ if menu == "승부 예측 게임":
         winner = np.random.choice([team1, team2], p=[win_prob_1, win_prob_2])
 
         return winner, stadium_owner, win_prob_1, win_prob_2
+
 
     def simulate_round(teams):
         winners = []
