@@ -317,63 +317,59 @@ if menu == "승부 예측":
 
 
 if menu == "승부 예측 게임":
-    st.header("🏆 승부 예측 토너먼트 (Top 16)")
+    st.header("승부 예측 게임 - 16강 토너먼트")
 
-    # 상위 16개 팀 추출
-    top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
-    team_names = top16["index"].tolist()
+    # 상위 16개 팀 추출 (순위 기준)
+    top_16_teams = df_standings.reset_index().rename(columns={"index": "구단"}).head(16)
+    top_16_list = top_16_teams["구단"].tolist()
 
-    st.markdown("상위 16개 팀: " + ", ".join(team_names))
+    st.write("16강 진출 팀:")
+    st.write(top_16_list)
 
-    def simulate_match(team1, team2):
-        # 홈 구장 무작위 선택
-        stadium_owner = np.random.choice([team1, team2])
-        
-        # 확률 계산
-        probs1, probs2 = calculate_win_probabilities(df, team1, team2)
+    def calculate_win_prob(home_odds, away_odds):
+        p_home = 1 / home_odds
+        p_away = 1 / away_odds
+        total = p_home + p_away
+        return p_home / total, p_away / total
 
-        if stadium_owner == team1:
-            win_prob_1 = probs1["home_win"]
-            win_prob_2 = probs2["away_win"]
-        else:
-            win_prob_1 = probs1["away_win"]
-            win_prob_2 = probs2["home_win"]
+    def get_match_odds(home_team, away_team):
+        # home_team 홈 경기 중 away_team과 경기 배당률 추출
+        matches = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
+        if matches.empty:
+            return None, None
+        # 평균 배당률 사용 (복수 경기시)
+        home_odds = matches["홈 승 배당률"].astype(float).mean()
+        away_odds = matches["원정 승 배당률"].astype(float).mean()
+        return home_odds, away_odds
 
-        # 정규화
-        total = win_prob_1 + win_prob_2
-        win_prob_1 /= total
-        win_prob_2 /= total
+    # 토너먼트 진행 함수 (16강 -> 8강 -> 4강 -> 결승)
+    def run_tournament(teams):
+        round_names = ["16강", "8강", "4강", "결승"]
+        current_teams = teams
 
-        winner = np.random.choice([team1, team2], p=[win_prob_1, win_prob_2])
+        for round_name in round_names:
+            st.subheader(f"{round_name} 경기 결과")
 
-        return winner, stadium_owner, win_prob_1, win_prob_2
+            next_round_teams = []
+            for i in range(0, len(current_teams), 2):
+                home_team = current_teams[i]
+                away_team = current_teams[i+1]
 
-    def simulate_round(teams):
-        winners = []
-        st.subheader(f"{len(teams)}강 경기 결과")
-        for i in range(0, len(teams), 2):
-            team1, team2 = teams[i], teams[i+1]
-            winner, stadium, p1, p2 = simulate_match(team1, team2)
+                home_odds, away_odds = get_match_odds(home_team, away_team)
+                home_prob, away_prob = calculate_win_prob(home_odds, away_odds)
 
-            st.markdown(f"""
-            <div style='padding:8px; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;'>
-            <strong>{team1}</strong> vs <strong>{team2}</strong>  
-            <br>📍 구장: <strong>{stadium}</strong> 홈  
-            <br>🔢 승리 확률 – {team1}: {p1:.2%}, {team2}: {p2:.2%}  
-            <br>🎉 결과: <strong style='color:green;'>{winner} 승리</strong>
-            </div>
-            """, unsafe_allow_html=True)
+                st.write(f"{home_team} vs {away_team}")
+                st.write(f"- {home_team} 승리 확률: {home_prob*100:.2f}%")
+                st.write(f"- {away_team} 승리 확률: {away_prob*100:.2f}%")
 
-            winners.append(winner)
-        return winners
+                # 실제 승자 선택 (확률 기반 무작위)
+                winner = np.random.choice([home_team, away_team], p=[home_prob, away_prob])
+                st.write(f"➡️ 승자: **{winner}**")
+                st.markdown("---")
+                next_round_teams.append(winner)
 
-    # 토너먼트 진행
-    round16 = team_names
-    quarter_final = simulate_round(round16)
-    semi_final = simulate_round(quarter_final)
-    final = simulate_round(semi_final)
-    champion = simulate_round(final)[0]
+            current_teams = next_round_teams
 
-    st.markdown("---")
-    st.subheader("🏆 최종 우승 팀")
-    st.markdown(f"<h2 style='text-align:center; color:gold;'>✨ {champion} ✨</h2>", unsafe_allow_html=True)
+        st.success(f"🏆 최종 우승 팀: **{current_teams[0]}**")
+
+    run_tournament(top_16_list)
