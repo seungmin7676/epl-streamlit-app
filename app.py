@@ -319,61 +319,71 @@ if menu == "승부 예측":
 if menu == "승부 예측 게임":
     st.header("🏆 승부 예측 토너먼트 (Top 16)")
 
+    # 상위 16개 팀 추출
     top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
     team_names = top16["index"].tolist()
-
-    # 팀 리스트 무작위 섞기
-    random.shuffle(team_names)
-
     st.markdown("상위 16개 팀: " + ", ".join(team_names))
 
-    def calculate_win_prob_from_odds(df, home_team, away_team):
-        matches = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
+    # 승리 확률 계산 함수
+    def calculate_win_probabilities(df, home_team, away_team):
+        match = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
 
-        home_odds = matches["홈 승 배당률"].astype(float).mean()
-        away_odds = matches["원정 승 배당률"].astype(float).mean()
+        # 배당률 가져오기
+        home_odds = match.iloc[0]["홈 승 배당률"]
+        away_odds = match.iloc[0]["원정 승 배당률"]
 
-        p_home = 1 / home_odds
-        p_away = 1 / away_odds
-        total = p_home + p_away
+        # 무승부 제외 승리 확률 공식
+        home_win_prob = (1 / home_odds) / ((1 / home_odds) + (1 / away_odds))
+        away_win_prob = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
 
         return {
-            "home_win": p_home / total,
-            "away_win": p_away / total,
+            "home_team": home_team,
+            "away_team": away_team,
+            "home_odds": home_odds,
+            "away_odds": away_odds,
+            "home_win": home_win_prob,
+            "away_win": away_win_prob
         }
 
+    # 경기 시뮬레이션
     def simulate_match(team1, team2):
         stadium_owner = np.random.choice([team1, team2])
+        probs = calculate_win_probabilities(df, team1, team2)
 
         if stadium_owner == team1:
-            probs = calculate_win_prob_from_odds(df, team1, team2)
             win_prob_1 = probs["home_win"]
             win_prob_2 = probs["away_win"]
+            odds_1 = probs["home_odds"]
+            odds_2 = probs["away_odds"]
         else:
-            probs = calculate_win_prob_from_odds(df, team2, team1)
             win_prob_1 = probs["away_win"]
             win_prob_2 = probs["home_win"]
+            odds_1 = probs["away_odds"]
+            odds_2 = probs["home_odds"]
 
+        # 정규화
         total = win_prob_1 + win_prob_2
         win_prob_1 /= total
         win_prob_2 /= total
 
         winner = np.random.choice([team1, team2], p=[win_prob_1, win_prob_2])
 
-        return winner, stadium_owner, win_prob_1, win_prob_2
+        return winner, stadium_owner, win_prob_1, win_prob_2, odds_1, odds_2
 
-
+    # 라운드 진행
     def simulate_round(teams):
+        random.shuffle(teams)
         winners = []
         st.subheader(f"{len(teams)}강 경기 결과")
         for i in range(0, len(teams), 2):
             team1, team2 = teams[i], teams[i+1]
-            winner, stadium, p1, p2 = simulate_match(team1, team2)
+            winner, stadium, p1, p2, o1, o2 = simulate_match(team1, team2)
 
             st.markdown(f"""
             <div style='padding:8px; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;'>
             <strong>{team1}</strong> vs <strong>{team2}</strong>  
             <br>📍 구장: <strong>{stadium}</strong> 홈  
+            <br>💸 배당률 – {team1}: {o1:.2f}, {team2}: {o2:.2f}  
             <br>🔢 승리 확률 – {team1}: {p1:.2%}, {team2}: {p2:.2%}  
             <br>🎉 결과: <strong style='color:green;'>{winner} 승리</strong>
             </div>
@@ -392,3 +402,4 @@ if menu == "승부 예측 게임":
     st.markdown("---")
     st.subheader("🏆 최종 우승 팀")
     st.markdown(f"<h2 style='text-align:center; color:gold;'>✨ {champion} ✨</h2>", unsafe_allow_html=True)
+
