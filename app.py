@@ -63,13 +63,10 @@ def calculate_standings(df):
     standings_df = pd.DataFrame.from_dict(standings, orient="index")
     standings_df["득실차"] = standings_df["득점"] - standings_df["실점"]
 
-    # 열 순서 재정렬: 경기, 승, 무, 패, 득점, 실점, 득실차, 승점
-    standings_df = standings_df[["경기", "승", "무", "패", "득점", "실점", "득실차", "승점"]]
-
-    # 정렬 기준: 승점 우선, 그다음 득실차, 그다음 득점
+    standings_df.index.name = "구단"
+    standings_df.reset_index(inplace=True)  # 팀명을 컬럼으로 명확히
+    standings_df = standings_df[["구단", "경기", "승", "무", "패", "득점", "실점", "득실차", "승점"]]
     return standings_df.sort_values(by=["승점", "득실차", "득점"], ascending=False)
-
-
 
 df_standings = calculate_standings(df)
 
