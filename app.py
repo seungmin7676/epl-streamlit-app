@@ -319,102 +319,103 @@ if menu == "승부 예측":
 if menu == "승부 예측 게임":
     st.header("🏆 승부 예측 토너먼트 (Top 16)")
 
-    # 상위 16개 팀 추출
     top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
     team_names = top16["index"].tolist()
     st.markdown("상위 16개 팀: " + ", ".join(team_names))
 
-    # 승리 확률 계산 함수
-    def calculate_win_probabilities(df, home_team, away_team):
-        match = df[(df["홈 팀"] == home_team) & (df["원정 팀"] == away_team)]
+    money = st.session_state.get("game_money", 10000)
+    st.markdown(f"💰 현재 게임 머니: {money} 원")
 
-        # 배당률 가져오기
-        home_odds = match.iloc[0]["홈 승 배당률"]
-        away_odds = match.iloc[0]["원정 승 배당률"]
-
-        # 무승부 제외 승리 확률 공식
-        home_win_prob = (1 / home_odds) / ((1 / home_odds) + (1 / away_odds))
-        away_win_prob = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
-
-        return {
-            "home_team": home_team,
-            "away_team": away_team,
-            "home_odds": home_odds,
-            "away_odds": away_odds,
-            "home_win": home_win_prob,
-            "away_win": away_win_prob
-        }
-
-    # 경기 시뮬레이션
     def simulate_match(team1, team2):
-        # 홈 구장 무작위 선택
         stadium_owner = np.random.choice([team1, team2])
+        # 배당률 가져오기 (데이터에서 stadium_owner가 홈인 경기에서)
+        match_rows = df[(df["홈 팀"] == stadium_owner) & (df["원정 팀"].isin([team1, team2]))]
+        match_row = match_rows.iloc[0]
 
-        # 해당 매치 데이터에서 배당률 찾기
+        # 배당률 설정
         if stadium_owner == team1:
-            match = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)]
             home_team = team1
             away_team = team2
+            home_odds = match_row["홈 승 배당률"]
+            away_odds = match_row["원정 승 배당률"]
         else:
-            match = df[(df["홈 팀"] == team2) & (df["원정 팀"] == team1)]
             home_team = team2
             away_team = team1
+            home_odds = match_row["홈 승 배당률"]
+            away_odds = match_row["원정 승 배당률"]
 
-        # 실제 배당률 추출
-        home_odds = match["홈 승 배당률"].values[0]
-        away_odds = match["원정 승 배당률"].values[0]
+        # 승리 확률 계산 (무승부 제외)
+        p_home = (1 / home_odds) / ((1 / home_odds) + (1 / away_odds))
+        p_away = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
 
-        # 무승부 없는 토너먼트 확률 계산
-        prob_home = 1 / home_odds
-        prob_away = 1 / away_odds
-        total = prob_home + prob_away
-        prob_home /= total
-        prob_away /= total
+        # 정규화
+        total = p_home + p_away
+        p_home /= total
+        p_away /= total
 
-        # 승자 결정
-        winner = np.random.choice([home_team, away_team], p=[prob_home, prob_away])
+        return stadium_owner, home_team, away_team, home_odds, away_odds, p_home, p_away
 
-        # 출력용: team1, team2 순서에 맞춘 확률 반환
-        if stadium_owner == team1:
-            win_prob_1 = prob_home
-            win_prob_2 = prob_away
-        else:
-            win_prob_1 = prob_away
-            win_prob_2 = prob_home
-
-        return winner, stadium_owner, win_prob_1, win_prob_2, home_odds, away_odds
-
-
-    # 라운드 진행
-    def simulate_round(teams):
+    def simulate_round_with_betting(teams, money):
         winners = []
         st.subheader(f"{len(teams)}강 경기 결과")
+
         for i in range(0, len(teams), 2):
             team1, team2 = teams[i], teams[i+1]
-            winner, stadium, p1, p2, odds1, odds2 = simulate_match(team1, team2)
-    
+
+            stadium_owner, home_team, away_team, home_odds, away_odds, p_home, p_away = simulate_match(team1, team2)
+
             st.markdown(f"""
             <div style='padding:8px; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;'>
-            <strong>{team1}</strong> vs <strong>{team2}</strong>  
-            <br>📍 구장: <strong>{stadium}</strong> 홈  
-            <br>💰 배당률 – {team1}: {odds1 if stadium == team1 else odds2}, {team2}: {odds2 if stadium == team1 else odds1}  
-            <br>🔢 승리 확률 – {team1}: {p1:.2%}, {team2}: {p2:.2%}  
-            <br>🎉 결과: <strong style='color:green;'>{winner} 승리</strong>
+            <strong>{home_team}</strong> (홈) vs <strong>{away_team}</strong> (원정)  
+            <br>📍 구장: <strong>{stadium_owner}</strong> 홈  
+            <br>🔢 승리 확률 – {home_team}: {p_home:.2%}, {away_team}: {p_away:.2%}  
+            <br>🎲 배당률 – {home_team}: {home_odds}, {away_team}: {away_odds}
             </div>
             """, unsafe_allow_html=True)
-    
-            winners.append(winner)
-        return winners
 
+            # 배팅 UI
+            bet_amount = st.number_input(f"{team1} vs {team2} 경기에서 배팅할 금액을 입력하세요 (현재 머니: {money}원)", min_value=0, max_value=money, step=100, key=f"bet_{i}")
+            bet_team = st.radio("누구에게 배팅할래?", (home_team, away_team), key=f"bet_team_{i}")
+
+            if bet_amount > 0:
+                st.markdown(f"**{bet_team} 팀에 {bet_amount}원 배팅 완료!**")
+
+            # 경기 결과 시뮬레이션 (확률에 따라 승자 결정)
+            winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
+            st.markdown(f"🏆 결과: **{winner} 승리**")
+
+            # 배팅 결과 반영
+            if bet_amount > 0:
+                if bet_team == winner:
+                    # 이겼으면 배당률 곱해서 머니 증가
+                    odds = home_odds if bet_team == home_team else away_odds
+                    win_money = int(bet_amount * odds)
+                    money += win_money
+                    st.markdown(f"🎉 배팅 성공! {win_money}원 획득")
+                else:
+                    # 졌으면 배팅 금액 감소
+                    money -= bet_amount
+                    st.markdown(f"😞 배팅 실패! {bet_amount}원 손실")
+
+            winners.append(winner)
+
+            st.markdown("---")
+            st.markdown(f"💰 남은 게임 머니: {money} 원")
+            st.markdown("---")
+
+        st.session_state["game_money"] = money
+        return winners, money
 
     # 토너먼트 진행
     round16 = team_names
-    quarter_final = simulate_round(round16)
-    semi_final = simulate_round(quarter_final)
-    final = simulate_round(semi_final)
-    champion = simulate_round(final)[0]
+    quarter_final, money = simulate_round_with_betting(round16, money)
+    semi_final, money = simulate_round_with_betting(quarter_final, money)
+    final, money = simulate_round_with_betting(semi_final, money)
+    champion, money = simulate_round_with_betting(final, money)
 
     st.markdown("---")
     st.subheader("🏆 최종 우승 팀")
-    st.markdown(f"<h2 style='text-align:center; color:gold;'>✨ {champion} ✨</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align:center; color:gold;'>✨ {champion[0]} ✨</h2>", unsafe_allow_html=True)
+    st.markdown(f"💰 최종 게임 머니: {money} 원")
+
 
