@@ -365,7 +365,7 @@ if menu == "승부 예측 게임":
     if idx >= len(matches):
         winners = st.session_state.winners
         if len(winners) == 1:
-            st.subheader(f"🏅 최종 우승팀: {winners[0]} 🎉 축하합니다!")
+            st.subheader(f"최종 우승팀: {winners[0]} 🎉축하합니다!🎉")
             st.stop()
         random.shuffle(winners)
         next_matches = [(winners[i], winners[i+1]) for i in range(0, len(winners), 2)]
@@ -382,10 +382,10 @@ if menu == "승부 예측 게임":
     home_team, away_team = matches[idx]
     p_home, p_away, home_odds, away_odds = calculate_win_probabilities(df, home_team, away_team)
 
-    st.header("🏆 승부 예측 토너먼트")
-    st.markdown(f"💰 현재 게임 머니: {st.session_state.game_money}원")
+    st.header("승부 예측 토너먼트")
+    st.markdown(f"현재 게임 머니: {st.session_state.game_money}원")
     st.subheader(f"{round_name} - 경기 {idx + 1} / {len(matches)}")
-    st.markdown(f"📍 경기장: **{home_team} 홈구장**")
+    st.markdown(f"경기장: **{home_team} 홈구장**")
     st.markdown(f"**{home_team} (홈) vs {away_team} (원정)**")
     st.markdown(f"배당률: {home_team} - {home_odds}, {away_team} - {away_odds}")
     st.markdown(f"승리 확률: {home_team} - {p_home:.2%}, {away_team} - {p_away:.2%}")
@@ -412,10 +412,10 @@ if menu == "승부 예측 게임":
         if not st.session_state.result_handled:
             if winner == st.session_state.selected_team:
                 win_money = int(st.session_state.bet_amount * (home_odds if winner == home_team else away_odds))
-                st.markdown(f"✅ 축하합니다! 배팅 성공! +{win_money}원 획득")
+                st.markdown(f"축하합니다! 배팅 성공! +{win_money}원 획득")
                 st.session_state.game_money += win_money
             else:
-                st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
+                st.markdown(f"배팅 실패.. -{st.session_state.bet_amount}원 손실")
                 st.session_state.game_money -= st.session_state.bet_amount
             st.session_state.result_handled = True
 
