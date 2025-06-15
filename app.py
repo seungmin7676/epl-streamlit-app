@@ -417,6 +417,3 @@ if menu == "승부 예측 게임":
     st.subheader("🏆 최종 우승 팀")
     st.markdown(f"<h2 style='text-align:center; color:gold;'>✨ {champion[0]} ✨</h2>", unsafe_allow_html=True)
     st.markdown(f"💰 최종 게임 머니: {money} 원")
-
-
-
