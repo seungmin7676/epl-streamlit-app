@@ -431,8 +431,6 @@ if menu == "승부 예측 게임":
             st.session_state.bet_amount = 0
             st.session_state.selected_team = None
             st.experimental_rerun()
-            st.experimental_rerun()
-            st.session_state.selected_team = None
 
 
 
