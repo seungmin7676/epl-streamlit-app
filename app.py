@@ -317,6 +317,8 @@ if menu == "승부 예측":
 
 
 if menu == "승부 예측 게임":
+    import random
+
     def calculate_win_probabilities(df, team1, team2):
         row = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)].iloc[0]
         home_odds = row["홈 승 배당률"]
@@ -325,7 +327,7 @@ if menu == "승부 예측 게임":
         p_away = (1 / away_odds) / ((1 / home_odds) + (1 / away_odds))
         return p_home, p_away, home_odds, away_odds
 
-    # 세션 상태 초기화
+    # 초기화
     if "game_money" not in st.session_state:
         st.session_state.game_money = 10000
     if "round_matches" not in st.session_state:
@@ -342,11 +344,20 @@ if menu == "승부 예측 게임":
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
+        st.session_state.result_handled = False
 
     matches = st.session_state.round_matches
     idx = st.session_state.match_idx
 
-    # 만약 라운드 종료 후 다음 라운드로 넘어가야 할 때
+    # 라운드 이름 설정
+    round_name = {
+        16: "16강",
+        8: "8강",
+        4: "4강",
+        2: "결승"
+    }.get(len(matches), f"{len(matches)}강")
+
+    # 라운드 종료 후 다음 라운드 생성
     if idx >= len(matches):
         winners = st.session_state.winners
         if len(winners) == 1:
@@ -363,18 +374,16 @@ if menu == "승부 예측 게임":
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
-        matches = st.session_state.round_matches
-        idx = 0  # 초기화 후 idx도 갱신
+        st.session_state.result_handled = False
+        matches = next_matches
+        idx = 0
 
-    # 경기 정보 표시
     home_team, away_team = matches[idx]
     p_home, p_away, home_odds, away_odds = calculate_win_probabilities(df, home_team, away_team)
 
-    round_name = {16: "16강", 8: "8강", 4: "4강", 2: "결승"}
-    current_round = round_name.get(len(matches) * 2, "토너먼트")
-    st.header(f"🏆 승부 예측 토너먼트 ({current_round})")
+    st.header("🏆 승부 예측 토너먼트")
     st.markdown(f"💰 현재 게임 머니: {st.session_state.game_money}원")
-    st.subheader(f"경기 {idx + 1} / {len(matches)}")
+    st.subheader(f"{round_name} - 경기 {idx + 1} / {len(matches)}")
     st.markdown(f"📍 경기장: **{home_team} 홈구장**")
     st.markdown(f"**{home_team} (홈) vs {away_team} (원정)**")
     st.markdown(f"배당률: {home_team} - {home_odds}, {away_team} - {away_odds}")
@@ -394,24 +403,30 @@ if menu == "승부 예측 게임":
                     winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
                     st.session_state.winner = winner
                     st.session_state.show_result = True
-
+                    st.session_state.result_handled = False  # 결과 아직 처리 안 됨
     else:
         winner = st.session_state.winner
         st.markdown(f"🎉 경기 결과: **{winner} 승리!**")
-        if winner == st.session_state.selected_team:
-            win_money = int(st.session_state.bet_amount * (home_odds if winner == home_team else away_odds))
-            st.markdown(f"✅ 축하합니다! 배팅 성공! +{win_money}원 획득")
-            st.session_state.game_money += win_money
-        else:
-            st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
-            st.session_state.game_money -= st.session_state.bet_amount
+
+        # ✅ 돈 증감은 한 번만 처리
+        if not st.session_state.result_handled:
+            if winner == st.session_state.selected_team:
+                win_money = int(st.session_state.bet_amount * (home_odds if winner == home_team else away_odds))
+                st.markdown(f"✅ 축하합니다! 배팅 성공! +{win_money}원 획득")
+                st.session_state.game_money += win_money
+            else:
+                st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
+                st.session_state.game_money -= st.session_state.bet_amount
+            st.session_state.result_handled = True  # 처리 완료
 
         if st.button("다음 경기"):
             st.session_state.winners.append(winner)
             st.session_state.match_idx += 1
             st.session_state.show_result = False
+            st.session_state.result_handled = False
             st.session_state.bet_amount = 0
             st.session_state.selected_team = None
+
 
 
 
