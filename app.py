@@ -320,7 +320,12 @@ if menu == "승부 예측 게임":
     import random
 
     def calculate_win_probabilities(df, team1, team2):
-        row = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)].iloc[0]
+        # 최근 경기 기준으로 배당률 사용, 없으면 기본값
+        match = df[(df["홈 팀"] == team1) & (df["원정 팀"] == team2)]
+        if match.empty:
+            # 데이터 없으면 0.5, 0.5, 2.0, 2.0 반환
+            return 0.5, 0.5, 2.0, 2.0
+        row = match.iloc[0]
         home_odds = row["홈 승 배당률"]
         away_odds = row["원정 승 배당률"]
         p_home = (1 / home_odds) / ((1 / home_odds) + (1 / away_odds))
