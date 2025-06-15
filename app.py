@@ -325,7 +325,6 @@ if menu == "승부 예측 게임":
         p_away = (1/away_odds) / ((1/home_odds) + (1/away_odds))
         return p_home, p_away, home_odds, away_odds
 
-    # 상태 초기화
     if "game_money" not in st.session_state:
         st.session_state.game_money = 10000
 
@@ -333,21 +332,20 @@ if menu == "승부 예측 게임":
         top16 = df_standings.sort_values(by=["승점", "득실차", "득점"], ascending=False).head(16).reset_index()
         teams = top16["index"].tolist()
         random.shuffle(teams)
-
         matches = []
         for i in range(0, len(teams), 2):
-            team_a = teams[i]
-            team_b = teams[i+1]
+            a, b = teams[i], teams[i+1]
             if random.random() < 0.5:
-                matches.append((team_a, team_b))
+                matches.append((a, b))
             else:
-                matches.append((team_b, team_a))
+                matches.append((b, a))
         st.session_state.round_matches = matches
         st.session_state.match_idx = 0
         st.session_state.winners = []
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
+        st.session_state.winner = None
 
     st.header("🏆 승부 예측 토너먼트 (Top 16)")
     st.markdown(f"💰 현재 게임 머니: {st.session_state.game_money}원")
@@ -355,27 +353,41 @@ if menu == "승부 예측 게임":
     matches = st.session_state.round_matches
     idx = st.session_state.match_idx
 
+    # 라운드 종료 후 다음 라운드 준비
     if idx >= len(matches):
         winners = st.session_state.winners
         if len(winners) == 1:
             st.subheader(f"🏅 최종 우승팀: {winners[0]} 🎉 축하합니다!")
             st.stop()
 
+        # 홀수 팀일 경우 1팀 부전승 처리 (임시: 마지막 팀 자동 다음 라운드 진출)
+        if len(winners) % 2 == 1:
+            st.warning("참가 팀 수가 홀수입니다. 마지막 팀이 부전승 처리됩니다.")
+            last_team = winners.pop()
+        else:
+            last_team = None
+
         random.shuffle(winners)
         next_matches = []
         for i in range(0, len(winners), 2):
-            a = winners[i]
-            b = winners[i+1]
+            a, b = winners[i], winners[i+1]
             if random.random() < 0.5:
-                next_matches.append((a,b))
+                next_matches.append((a, b))
             else:
-                next_matches.append((b,a))
+                next_matches.append((b, a))
+        if last_team:
+            # 부전승 팀을 다음 라운드로 바로 추가
+            st.session_state.winners = [last_team]
+        else:
+            st.session_state.winners = []
+
         st.session_state.round_matches = next_matches
         st.session_state.match_idx = 0
-        st.session_state.winners = []
         st.session_state.show_result = False
         st.session_state.bet_amount = 0
         st.session_state.selected_team = None
+        st.session_state.winner = None
+
         st.experimental_rerun()
 
     home_team, away_team = matches[idx]
@@ -388,16 +400,22 @@ if menu == "승부 예측 게임":
     st.markdown(f"승리 확률: {home_team} - {p_home:.2%}, {away_team} - {p_away:.2%}")
 
     if not st.session_state.show_result:
-        bet_amount = st.number_input("배팅 금액 입력", min_value=1, max_value=st.session_state.game_money, step=100, key="bet_input")
-        selected_team = st.radio("이길 팀 선택", options=[home_team, away_team], key="team_select")
+        with st.form("bet_form"):
+            bet_amount = st.number_input("배팅 금액 입력", min_value=1, max_value=st.session_state.game_money, step=100)
+            selected_team = st.radio("이길 팀 선택", options=[home_team, away_team])
+            submitted = st.form_submit_button("확인")
 
-        if st.button("확인", key="confirm_btn") and bet_amount > 0:
-            st.session_state.bet_amount = bet_amount
-            st.session_state.selected_team = selected_team
+            if submitted:
+                if bet_amount <= 0 or bet_amount > st.session_state.game_money:
+                    st.warning("배팅 금액을 올바르게 입력하세요.")
+                else:
+                    st.session_state.bet_amount = bet_amount
+                    st.session_state.selected_team = selected_team
+                    winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
+                    st.session_state.winner = winner
+                    st.session_state.show_result = True
+                    st.experimental_rerun()  # 결과 보여주려고 새로고침
 
-            winner = np.random.choice([home_team, away_team], p=[p_home, p_away])
-            st.session_state.winner = winner
-            st.session_state.show_result = True
     else:
         winner = st.session_state.winner
         st.markdown(f"🎉 경기 결과: **{winner} 승리!**")
@@ -412,11 +430,12 @@ if menu == "승부 예측 게임":
             st.markdown(f"❌ 배팅 실패.. -{st.session_state.bet_amount}원 손실")
             st.session_state.game_money -= st.session_state.bet_amount
 
-        if st.button("다음 경기", key="next_btn"):
+        if st.button("다음 경기"):
             st.session_state.winners.append(winner)
             st.session_state.match_idx += 1
             st.session_state.show_result = False
             st.session_state.bet_amount = 0
             st.session_state.selected_team = None
+            st.session_state.winner = None
             st.experimental_rerun()
 
