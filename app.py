@@ -110,7 +110,7 @@ if menu == "전체 분석":
 
 # 팀별 분석 HTML 포맷팅 함수
 def format_match_row(date, home_team, home_score, away_score, away_team, highlight_team):
-    # 승리한 팀 글씨 굵게 처리
+    # 승리한 팀 볼드 처리
     if home_score > away_score:
         home_style = "font-weight:bold;"
         away_style = "font-weight:normal;"
