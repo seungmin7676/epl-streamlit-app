@@ -270,7 +270,6 @@ if menu == "승부 예측":
     ][["날짜", "홈 팀", "원정 팀",
        "홈 승 배당률", "무승부 배당률", "원정 승 배당률"]].copy()
     
-
     # team2 홈 경기 (vs team1)
     team2_home_matches = df[
         (df["홈 팀"] == team2) & (df["원정 팀"] == team1)
@@ -384,6 +383,12 @@ if menu == "승부 예측 게임":
     p_home, p_away, home_odds, away_odds = calculate_win_probabilities(df, home_team, away_team)
 
     st.header("승부 예측 토너먼트")
+    st.subheader(f"{round_name} 전체 경기 매치업")
+
+    # ⬇️ 현재 라운드의 전체 매치 리스트 출력
+    for i, (home, away) in enumerate(matches, 1):
+        st.markdown(f"- 경기 {i}: **{home} (홈)** vs **{away} (원정)**")
+
     st.markdown(f"현재 게임 머니: {st.session_state.game_money}원")
     st.subheader(f"{round_name} - 경기 {idx + 1} / {len(matches)}")
     st.markdown(f"경기장: **{home_team} 홈구장**")
