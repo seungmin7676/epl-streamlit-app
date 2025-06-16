@@ -360,7 +360,9 @@ if menu == "승부 예측 게임":
     matches = st.session_state.round_matches
     idx = st.session_state.match_idx
 
-    round_name = {16: "16강", 8: "8강", 4: "4강", 2: "결승"}.get(len(matches), f"{len(matches)}강")
+    team_count = len(matches) * 2
+    round_name = {16: "16강", 8: "8강", 4: "4강", 2: "결승"}.get(team_count, f"{team_count}강")
+
 
     if idx >= len(matches):
         winners = st.session_state.winners
