@@ -67,7 +67,7 @@ def calculate_standings(df):
     standings_df.index.name = "구단"
     standings_df.reset_index(inplace=True)
     standings_df = standings_df[["구단", "경기", "승", "무", "패", "득점", "실점", "득실차", "승점"]]
-    return standings_df.sort_values(by=["승점", "득실차", "득점"], ascending=False)
+    return standings_df.sort_values(by=["승점"], ascending=False)
 
 df_standings = calculate_standings(df)
 
